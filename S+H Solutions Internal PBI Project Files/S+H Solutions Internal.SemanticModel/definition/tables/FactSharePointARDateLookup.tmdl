@@ -1,0 +1,46 @@
+table FactSharePointARDateLookup
+	lineageTag: 65d599b0-cafe-4c10-b38b-889385634413
+
+	measure 'HubSpot Deal Latest AR Lookup Date Message' =
+			
+			VAR LatestARLookupDate = MAX(FactSharePointARDateLookup[ARLookupDate])
+			RETURN
+			"Note: AR data results are updated as of " & FORMAT(LatestARLookupDate, "") & "."
+		lineageTag: 7efd14e1-4813-4d9c-9eaa-a1cda059d0a9
+
+	column ARLookupDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cb9d9440-8aaf-4c16-ae9c-a76334e3d28b
+		summarizeBy: none
+		sourceColumn: ARLookupDate
+
+		variation Variation
+			isDefault
+			relationship: 5b951d29-b9a4-4b3e-a232-0a945cbf9a45
+			defaultHierarchy: LocalDateTable_b89d7df3-4b71-4a8b-ae20-1733fab9105f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactSharePointARDateLookup = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+				    #"SH Consulting Actual Hours - Working - 2025 xlsx_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="SH Consulting Actual Hours - Working - 2025.xlsx",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"SH Consulting Actual Hours - Working - 2025 xlsx_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+				    #"AR Data_Sheet" = #"Imported Excel Workbook"{[Item="AR Data",Kind="Sheet"]}[Data],
+				    #"Removed Other Columns" = Table.SelectColumns(#"AR Data_Sheet",{"Column8"}),
+				    #"Kept First Rows" = Table.FirstN(#"Removed Other Columns",1),
+				    #"Renamed Columns" = Table.RenameColumns(#"Kept First Rows",{{"Column8", "ARLookupDate"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"ARLookupDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

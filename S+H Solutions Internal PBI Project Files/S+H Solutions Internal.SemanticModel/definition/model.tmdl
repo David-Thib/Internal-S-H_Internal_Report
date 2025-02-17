@@ -1,0 +1,110 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup Resources
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup Events
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'SharePoint Tables'
+
+	annotation PBI_QueryGroupOrder = 5
+
+queryGroup 'HubSpot Tables'
+
+	annotation PBI_QueryGroupOrder = 4
+
+annotation PBI_QueryOrder = ["FactGoals","DimARBuckets","SalesHeaders","DimDate","FactEvents","FactHubSpotInvoices","SalesBudgetBuckets - Source","SalesBudgetBuckets","DealPipelineStage","FactHubSpotOwner","SyncHistory","Resource List","FactResource","DimServiceLine","DimSystems","DimIndExp","DimProSkills","DimLocation","FactHubSpotEngagements","FactHubSpotDeal","FactHubSpotDeal_Split_Source","Contact","DimManagingDirector","InvoiceBudget","DimManagingDirectorTotal","DimResource","DimDate (2)","FactSharePointUtilizationData","FactSharePointUtilizationData_SplitWithMindy","FactSharePointARData","DimAgingCategory","FactHubSpotDeal_DataSource","FactHubSpotOwner_DataSource","FactHubSpotLineItemView_DataSource","FactHubSpotInvoicesViewNew_DataSource","FactSharePointARDateLookup","FactUnbillableSandboxData_Unload","FactNeededCaseStudies_Unload","FactSharePointResourceData","FactUnbilliableSandboxData","FactNeededCaseStudies","FactSharePointWeeklyForecastData","FactHubSpotDeal_TableLists","FactHubSpotCompany","FactHubSpotDealCompanyBridge"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBIDesktopVersion = 2.139.1733.0 (24.12)+af51d793b3eacaf90fc70909aa713164bbd22a66
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DateTableTemplate_7d1e5340-b811-4078-86ba-1d1e03022a51
+ref table DimDate
+ref table FactEvents
+ref table DimARBuckets
+ref table FactHubSpotDeal
+ref table LocalDateTable_35c5cc25-9cd6-4dc8-9022-22698899119f
+ref table LocalDateTable_99ac11b3-49ad-452f-832b-d0a6adfc6266
+ref table SyncHistory
+ref table LocalDateTable_98d3df19-00a5-4488-a3f7-4a70868b8e41
+ref table FactResource
+ref table LocalDateTable_ebf4604b-ce62-45f1-bb4d-5ad02ad65f81
+ref table LocalDateTable_c08cb7b0-7565-4958-a9ca-25f3dbbdfe82
+ref table LocalDateTable_9f9b27c4-d23a-4e6c-a3bb-14e006752415
+ref table DimServiceLine
+ref table DimSystems
+ref table DimIndExp
+ref table DimProSkills
+ref table DimLocation
+ref table LocalDateTable_08fe677f-7d98-40c3-9771-3d1ad9a5b1de
+ref table FactHubSpotInvoices
+ref table FactHubSpotEngagements
+ref table SalesBudgetBuckets
+ref table SalesHeaders
+ref table Contact
+ref table DimManagingDirector
+ref table InvoiceBudget
+ref table LocalDateTable_4edada56-4d5a-491b-9f31-5bb3937869fd
+ref table DimManagingDirectorTotal
+ref table LocalDateTable_2b5819c0-6339-4a3c-9877-dd63b0ab5a6f
+ref table LocalDateTable_b05fd040-ce8e-4492-b403-6cad4eb94f2c
+ref table LocalDateTable_974718ad-f9ca-494c-bcc3-2ad35096b550
+ref table LocalDateTable_a1babe5c-afa9-4275-82b8-492cff02cc3b
+ref table LocalDateTable_4313231a-ad4b-4207-9035-711408c06485
+ref table FactSharePointUtilizationData
+ref table FactSharePointARData
+ref table DimAgingCategory
+ref table LocalDateTable_645c31ee-a002-4ef1-8523-c42586e00136
+ref table LocalDateTable_c97c1812-a3f3-4926-a67a-5370df957039
+ref table LocalDateTable_271857db-f30c-4b2e-9f93-10b0081fe717
+ref table LocalDateTable_95c5a114-2135-4634-a8af-8e4a337bc2cb
+ref table LocalDateTable_0ea7272b-d08f-4ea3-84ce-5cbee7519b7b
+ref table LocalDateTable_b46a4bf8-c8f9-491a-a244-5e3fa2b625a3
+ref table LocalDateTable_ce04159b-4bdd-4780-a9c1-09c7cc6cc34f
+ref table LocalDateTable_7578b971-af07-498e-9469-04ffd4328fad
+ref table LocalDateTable_c026cf21-a55b-4f48-b584-a3e45061ac77
+ref table LocalDateTable_f59fa7c4-5842-4ea9-bf49-2b2fb3faa1a9
+ref table LocalDateTable_5709842d-a61f-4709-b083-98bdd271ba54
+ref table LocalDateTable_6ceaf3fc-ae65-49fa-9d80-8b816fe8997f
+ref table LocalDateTable_e4931850-0b2c-4df5-baec-0355679c93b2
+ref table LocalDateTable_f9a32b53-4d04-48f4-b17a-3862f25dcbf7
+ref table LocalDateTable_76cb679c-b7a6-4046-b904-35353dfcd8c7
+ref table LocalDateTable_35eecea4-d14f-406e-ba83-6292808eae47
+ref table LocalDateTable_232fedc5-e987-4913-a278-32c3a056c83b
+ref table LocalDateTable_a39225ad-f30a-4910-91d4-92e1d9645ac7
+ref table LocalDateTable_9bc849e0-1b3a-4e3b-89db-7da976fd6543
+ref table LocalDateTable_1ca35887-4933-482c-8eb7-888138f9f56e
+ref table LocalDateTable_3e63da61-46c7-4537-b559-9de15f92ae50
+ref table FactSharePointARDateLookup
+ref table LocalDateTable_b89d7df3-4b71-4a8b-ae20-1733fab9105f
+ref table FactGoals
+ref table FactSharePointResourceData
+ref table FactHubSpotOwner
+ref table LocalDateTable_25f4f0e4-b2b4-4cdf-bd28-495f6f2bdaac
+ref table LocalDateTable_96f77619-e392-419c-9f3a-86920e3bbdfc
+ref table FactSharePointCurrentYearRevenue
+ref table LocalDateTable_2e920df8-10ef-46a0-89ee-edc9c05d5f8a
+ref table FactSharePointWeeklyForecastData
+ref table FactSharePointSummarizedForecastTable
+ref table LocalDateTable_7919f2eb-4e40-42e7-8073-aac80aed4296
+ref table LocalDateTable_8af0783f-eaa6-4809-aff5-62b1923f7a4e
+ref table FactHubSpotCompany
+ref table FactHubSpotDealCompanyBridge
+ref table FactNeededCaseStudies
+ref table LocalDateTable_e26b2f46-7f7e-4038-b1f5-02d7dc9f0729
+ref table FactUnbilliableSandboxData
+
+ref cultureInfo en-US
+

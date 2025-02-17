@@ -1,0 +1,5 @@
+{
+  "objectId": "",
+  "type": 4,
+  "explorationState": "{\"version\":\"1.8\",\"activeSection\":\"\",\"sections\":{\"ReportSectionb4f246367caa03d320eb\":{\"visualContainers\":{\"785961d980138a00d73c\":{\"singleVisual\":{\"visualType\":\"shape\",\"mobileObjects\":{\"outline\":[{\"properties\":{\"lineColor\":{\"solid\":{\"color\":{\"expr\":{\"ThemeDataColor\":{\"ColorId\":1,\"Percent\":0}}}}}},\"selector\":{\"id\":\"default\"}}],\"shape\":[],\"rotation\":[],\"fill\":[]}}},\"53a75a8edd4a76818062\":{\"singleVisual\":{\"visualType\":\"shape\",\"mobileObjects\":{\"outline\":[{\"properties\":{\"lineColor\":{\"solid\":{\"color\":{\"expr\":{\"ThemeDataColor\":{\"ColorId\":1,\"Percent\":0}}}}}},\"selector\":{\"id\":\"default\"}}],\"shape\":[],\"rotation\":[],\"fill\":[]}}},\"a0c234ca04aa9ba2abc7\":{\"singleVisual\":{\"visualType\":\"shape\",\"mobileObjects\":{\"outline\":[{\"properties\":{\"lineColor\":{\"solid\":{\"color\":{\"expr\":{\"Literal\":{\"Value\":\"'#000000'\"}}}}}},\"selector\":{\"id\":\"default\"}}]}}}}}}}"
+}

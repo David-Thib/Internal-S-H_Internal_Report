@@ -1,0 +1,385 @@
+expression DealPipelineStage =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+		    dbo_DealPipelineStage = Source{[Schema="dbo",Item="DealPipelineStage"]}[Data],
+		    #"Filtered Rows" = Table.SelectRows(dbo_DealPipelineStage, each ([PipelineId] = "default")),
+		    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"DisplayOrder", Order.Ascending}}),
+		    #"Capitalized Each Word" = Table.TransformColumns(#"Sorted Rows",{{"StageLabel", Text.Proper, type text}})
+		in
+		    #"Capitalized Each Word"
+	lineageTag: bad8c60f-914e-4776-aa9e-93ef7f72a672
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Resource List' =
+		let
+		    Source = SharePoint.Tables("https://vipsearchgroup.sharepoint.com/sites/VIPPowerBI/", [Implementation=null, ApiVersion=15]),
+		    #"f42af84b-9e70-45cd-a631-861c8de08d19" = Source{[Id="f42af84b-9e70-45cd-a631-861c8de08d19"]}[Items],
+		    #"Removed Columns" = Table.RemoveColumns(#"f42af84b-9e70-45cd-a631-861c8de08d19",{"FileSystemObjectType", "ServerRedirectedEmbedUri", "ServerRedirectedEmbedUrl", "Id", "ContentTypeId"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Title", "QB ID"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"AuthorId", "EditorId", "OData__UIVersionString", "Attachments", "GUID", "ComplianceAssetId"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Removed Columns1",{{"field_0", "Full Name"}, {"field_1", "Professional Designations"}, {"field_3", "Email"}, {"field_4", "Job Title"}, {"field_5", "Employee Type"}, {"field_6", "Employee Preference"}, {"field_7", "Start Date"}, {"field_8", "Available Date"}, {"field_9", "Active"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns1",{{"Active", type logical}, {"Available Date", type date}, {"Start Date", type date}, {"Created", type date}, {"Modified", type date}}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type",{{"field_10", "Availability"}, {"field_11", "Utilization Percentage"}, {"field_12", "Booked Weekly Hours"}, {"field_13", "Desired Maximum Hours"}}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns2",{{"Desired Maximum Hours", Int64.Type}, {"Utilization Percentage", Percentage.Type}}),
+		    #"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type1", {{"Utilization Percentage", 0}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Replaced Errors","#DIV/0!","Available",Replacer.ReplaceText,{"Availability"}),
+		    #"Renamed Columns3" = Table.RenameColumns(#"Replaced Value",{{"field_14", "Director"}, {"field_15", "Location"}, {"field_16", "Service Line"}, {"field_17", "Systems"}, {"field_18", "Industry Experience"}, {"field_19", "Profile Skills"}, {"field_20", "Years of Experience"}}),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Renamed Columns3",{{"Years of Experience", Int64.Type}}),
+		    #"Renamed Columns4" = Table.RenameColumns(#"Changed Type2",{{"field_21", "Level"}, {"field_22", "Profile Link"}}),
+		    #"Changed Type3" = Table.TransformColumnTypes(#"Renamed Columns4",{{"Profile Link", type text}}),
+		    #"Renamed Columns5" = Table.RenameColumns(#"Changed Type3",{{"field_23", "Bullhorn Link"}}),
+		    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns5",{{"Bullhorn Link", type text}}),
+		    #"Renamed Columns6" = Table.RenameColumns(#"Changed Type4",{{"field_24", "Bill Rate"}}),
+		    #"Changed Type5" = Table.TransformColumnTypes(#"Renamed Columns6",{{"Bill Rate", Int64.Type}}),
+		    #"Renamed Columns7" = Table.RenameColumns(#"Changed Type5",{{"field_25", "Pay Rate"}}),
+		    #"Changed Type6" = Table.TransformColumnTypes(#"Renamed Columns7",{{"Pay Rate", Int64.Type}}),
+		    #"Removed Columns2" = Table.RemoveColumns(#"Changed Type6",{"FirstUniqueAncestorSecurableObject", "RoleAssignments", "AttachmentFiles", "ContentType", "GetDlpPolicyTip", "FieldValuesAsHtml", "FieldValuesAsText", "FieldValuesForEdit", "File", "Folder", "LikedByInformation", "ParentList", "Properties", "Versions", "Author", "Editor"}),
+		    #"Replaced Value3" = Table.ReplaceValue(#"Removed Columns2",null,"N/A",Replacer.ReplaceValue,{"Location", "Service Line", "Systems", "Industry Experience", "Profile Skills"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value3",", ","$",Replacer.ReplaceText,{"Service Line", "Systems", "Industry Experience", "Profile Skills"}),
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Replaced Value1", "Service Line", Splitter.SplitTextByDelimiter("$", QuoteStyle.Csv), {"Service Line.1", "Service Line.2", "Service Line.3"}),
+		    #"Changed Type7" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Service Line.1", type text}, {"Service Line.2", type text}, {"Service Line.3", type text}}),
+		    #"Split Column by Delimiter1" = Table.SplitColumn(#"Changed Type7", "Systems", Splitter.SplitTextByDelimiter("$", QuoteStyle.Csv), {"Systems.1", "Systems.2", "Systems.3", "Systems.4", "Systems.5", "Systems.6", "Systems.7", "Systems.8", "Systems.9", "Systems.10", "Systems.11", "Systems.12", "Systems.13"}),
+		    #"Changed Type8" = Table.TransformColumnTypes(#"Split Column by Delimiter1",{{"Systems.1", type text}, {"Systems.2", type text}, {"Systems.3", type text}, {"Systems.4", type text}, {"Systems.5", type text}, {"Systems.6", type text}, {"Systems.7", type text}, {"Systems.8", type text}, {"Systems.9", type text}, {"Systems.10", type text}, {"Systems.11", type text}, {"Systems.12", type text}, {"Systems.13", type text}}),
+		    #"Split Column by Delimiter2" = Table.SplitColumn(#"Changed Type8", "Industry Experience", Splitter.SplitTextByDelimiter("$", QuoteStyle.Csv), {"Industry Experience.1", "Industry Experience.2", "Industry Experience.3", "Industry Experience.4", "Industry Experience.5", "Industry Experience.6", "Industry Experience.7", "Industry Experience.8", "Industry Experience.9", "Industry Experience.10", "Industry Experience.11", "Industry Experience.12", "Industry Experience.13", "Industry Experience.14"}),
+		    #"Changed Type9" = Table.TransformColumnTypes(#"Split Column by Delimiter2",{{"Industry Experience.1", type text}, {"Industry Experience.2", type text}, {"Industry Experience.3", type text}, {"Industry Experience.4", type text}, {"Industry Experience.5", type text}, {"Industry Experience.6", type text}, {"Industry Experience.7", type text}, {"Industry Experience.8", type text}, {"Industry Experience.9", type text}, {"Industry Experience.10", type text}, {"Industry Experience.11", type text}, {"Industry Experience.12", type text}, {"Industry Experience.13", type text}, {"Industry Experience.14", type text}}),
+		    #"Split Column by Delimiter3" = Table.SplitColumn(#"Changed Type9", "Profile Skills", Splitter.SplitTextByDelimiter("$", QuoteStyle.Csv), {"Profile Skills.1", "Profile Skills.2"}),
+		    #"Changed Type10" = Table.TransformColumnTypes(#"Split Column by Delimiter3",{{"Profile Skills.1", type text}, {"Profile Skills.2", type text}}),
+		    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Changed Type10", {"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Location", "Service Line.1", "Service Line.2", "Service Line.3", "Systems.1", "Systems.2", "Systems.3", "Systems.4", "Systems.5", "Systems.6", "Systems.7", "Systems.8", "Systems.9", "Systems.10", "Systems.11", "Systems.12", "Systems.13", "Industry Experience.1", "Industry Experience.2", "Industry Experience.3", "Industry Experience.4", "Industry Experience.5", "Industry Experience.6", "Industry Experience.7", "Industry Experience.8", "Industry Experience.9", "Industry Experience.10", "Industry Experience.11", "Industry Experience.12", "Industry Experience.13", "Industry Experience.14", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate"}, "Attribute", "Value"),
+		    #"Renamed Columns8" = Table.RenameColumns(#"Unpivoted Columns",{{"Value", "Profile Skills"}}),
+		    #"Removed Columns3" = Table.RemoveColumns(#"Renamed Columns8",{"Attribute"}),
+		    #"Unpivoted Columns1" = Table.UnpivotOtherColumns(#"Removed Columns3", {"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Location", "Service Line.1", "Service Line.2", "Service Line.3", "Systems.1", "Systems.2", "Systems.3", "Systems.4", "Systems.5", "Systems.6", "Systems.7", "Systems.8", "Systems.9", "Systems.10", "Systems.11", "Systems.12", "Systems.13", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills"}, "Attribute", "Value"),
+		    #"Renamed Columns9" = Table.RenameColumns(#"Unpivoted Columns1",{{"Value", "Industry Experience"}}),
+		    #"Removed Columns4" = Table.RemoveColumns(#"Renamed Columns9",{"Attribute"}),
+		    #"Unpivoted Columns2" = Table.UnpivotOtherColumns(#"Removed Columns4", {"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Location", "Service Line.1", "Service Line.2", "Service Line.3", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience"}, "Attribute", "Value"),
+		    #"Renamed Columns10" = Table.RenameColumns(#"Unpivoted Columns2",{{"Value", "Systems"}}),
+		    #"Removed Columns5" = Table.RemoveColumns(#"Renamed Columns10",{"Attribute"}),
+		    #"Unpivoted Columns3" = Table.UnpivotOtherColumns(#"Removed Columns5", {"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Location", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience", "Systems"}, "Attribute", "Value"),
+		    #"Renamed Columns11" = Table.RenameColumns(#"Unpivoted Columns3",{{"Value", "Service Line"}}),
+		    #"Removed Columns6" = Table.RemoveColumns(#"Renamed Columns11",{"Attribute"}),
+		    #"Replaced Value2" = Table.ReplaceValue(#"Removed Columns6",", ","$",Replacer.ReplaceText,{"Location"}),
+		    #"Split Column by Delimiter4" = Table.SplitColumn(#"Replaced Value2", "Location", Splitter.SplitTextByDelimiter("$", QuoteStyle.Csv), {"Location.1", "Location.2", "Location.3"}),
+		    #"Changed Type11" = Table.TransformColumnTypes(#"Split Column by Delimiter4",{{"Location.1", type text}, {"Location.2", type text}, {"Location.3", type text}}),
+		    #"Unpivoted Columns4" = Table.UnpivotOtherColumns(#"Changed Type11", {"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience", "Systems", "Service Line"}, "Attribute", "Value"),
+		    #"Renamed Columns12" = Table.RenameColumns(#"Unpivoted Columns4",{{"Value", "Location"}}),
+		    #"Removed Columns7" = Table.RemoveColumns(#"Renamed Columns12",{"Attribute"}),
+		    #"Changed Type12" = Table.TransformColumnTypes(#"Removed Columns7",{{"Booked Weekly Hours", Int64.Type}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type12",{"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Desired Maximum Hours", "Booked Weekly Hours", "Director", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience", "Systems", "Service Line", "Location"}),
+		    #"Replaced Value4" = Table.ReplaceValue(#"Reordered Columns",null,0,Replacer.ReplaceValue,{"Desired Maximum Hours"}),
+		    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4",null,0,Replacer.ReplaceValue,{"Booked Weekly Hours"}),
+		    #"Added Custom" = Table.AddColumn(#"Replaced Value5", "Remaining Hours", each [Desired Maximum Hours] - [Booked Weekly Hours]),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Added Custom",{"ID", "QB ID", "Modified", "Created", "Full Name", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Desired Maximum Hours", "Booked Weekly Hours", "Remaining Hours", "Director", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience", "Systems", "Service Line", "Location"}),
+		    #"Replaced Value6" = Table.ReplaceValue(#"Reordered Columns1",null,true,Replacer.ReplaceValue,{"Active"})
+		in
+		    #"Replaced Value6"
+	lineageTag: 919d5785-29e4-420e-980c-45e2c2ab1f08
+	queryGroup: Resources
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'SalesBudgetBuckets - Source' =
+		let
+		    Source = Excel.Workbook(Web.Contents("https://vipsearchgroup.sharepoint.com/sites/VIPPowerBI/Shared%20Documents/General/VIP%20Internal%20-%20(PB-2208-003)/Budgeted%20Sales%20Requirements.xlsx"), null, true),
+		    Table2_Table = Source{[Item="SalesBucket",Kind="Table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(Table2_Table,{{"1/1/2023", type number}})
+		in
+		    #"Changed Type"
+	lineageTag: 897183dc-4608-4508-b764-2ca89ccd1914
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimResource =
+		let
+		    Source = SharePoint.Tables("https://vipsearchgroup.sharepoint.com/sites/VIPPowerBI/", [Implementation=null, ApiVersion=15]),
+		    #"f42af84b-9e70-45cd-a631-861c8de08d19" = Source{[Id="f42af84b-9e70-45cd-a631-861c8de08d19"]}[Items],
+		    #"Removed Columns" = Table.RemoveColumns(#"f42af84b-9e70-45cd-a631-861c8de08d19",{"FileSystemObjectType", "ServerRedirectedEmbedUri", "ServerRedirectedEmbedUrl", "Id", "ContentTypeId"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Title", "QB ID"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"AuthorId", "EditorId", "OData__UIVersionString", "Attachments", "GUID", "ComplianceAssetId"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Removed Columns1",{{"field_0", "Full Name"}, {"field_1", "Professional Designations"}, {"field_3", "Email"}, {"field_4", "Job Title"}, {"field_5", "Employee Type"}, {"field_6", "Employee Preference"}, {"field_7", "Start Date"}, {"field_8", "Available Date"}, {"field_9", "Active"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns1",{{"Active", type logical}, {"Available Date", type date}, {"Start Date", type date}, {"Created", type date}, {"Modified", type date}}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Changed Type",{{"field_10", "Availability"}, {"field_11", "Utilization Percentage"}, {"field_12", "Booked Weekly Hours"}, {"field_13", "Desired Maximum Hours"}}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns2",{{"Desired Maximum Hours", Int64.Type}, {"Utilization Percentage", Percentage.Type}}),
+		    #"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type1", {{"Utilization Percentage", 0}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Replaced Errors","#DIV/0!","Available",Replacer.ReplaceText,{"Availability"}),
+		    #"Renamed Columns3" = Table.RenameColumns(#"Replaced Value",{{"field_14", "Director"}, {"field_15", "Location"}, {"field_16", "Service Line"}, {"field_17", "Systems"}, {"field_18", "Industry Experience"}, {"field_19", "Profile Skills"}, {"field_20", "Years of Experience"}}),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Renamed Columns3",{{"Years of Experience", Int64.Type}}),
+		    #"Renamed Columns4" = Table.RenameColumns(#"Changed Type2",{{"field_21", "Level"}, {"field_22", "Profile Link"}}),
+		    #"Changed Type3" = Table.TransformColumnTypes(#"Renamed Columns4",{{"Profile Link", type text}}),
+		    #"Renamed Columns5" = Table.RenameColumns(#"Changed Type3",{{"field_23", "Bullhorn Link"}}),
+		    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns5",{{"Bullhorn Link", type text}}),
+		    #"Renamed Columns6" = Table.RenameColumns(#"Changed Type4",{{"field_24", "Bill Rate"}}),
+		    #"Changed Type5" = Table.TransformColumnTypes(#"Renamed Columns6",{{"Bill Rate", Int64.Type}}),
+		    #"Renamed Columns7" = Table.RenameColumns(#"Changed Type5",{{"field_25", "Pay Rate"}}),
+		    #"Changed Type6" = Table.TransformColumnTypes(#"Renamed Columns7",{{"Pay Rate", Int64.Type}}),
+		    #"Removed Columns2" = Table.RemoveColumns(#"Changed Type6",{"FirstUniqueAncestorSecurableObject", "RoleAssignments", "AttachmentFiles", "ContentType", "GetDlpPolicyTip", "FieldValuesAsHtml", "FieldValuesAsText", "FieldValuesForEdit", "File", "Folder", "LikedByInformation", "ParentList", "Properties", "Versions", "Author", "Editor", "Modified", "Created", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate"})
+		in
+		    #"Removed Columns2"
+	lineageTag: fb55f1ad-2b12-44ed-aac4-a8d51a97fd97
+	queryGroup: Resources
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotDeal_DataSource =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384", [Query="select *#(lf)from Deal"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([pipeline] = "113522976" or [pipeline] = "default"))
+		in
+		    #"Filtered Rows"
+	lineageTag: dd017046-41fe-4f95-bd7a-044872260038
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotOwner_DataSource =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384", [Query="select *#(lf)from Owner"])
+		in
+		    Source
+	lineageTag: a851be9a-5ad7-4a2b-90d5-3a7efd898060
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotInvoicesViewNew_DataSource =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384", [Query="SELECT *#(lf)FROM Invoice"])
+		in
+		    Source
+	lineageTag: 8c6b18ee-f08d-46ff-8983-c1838db4750a
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotLineItemView_DataSource =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+		    dbo_LineItem = Source{[Schema="dbo",Item="LineItem"]}[Data]
+		in
+		    dbo_LineItem
+	lineageTag: 3f69840f-ad70-48a9-89f9-bce3505d08a3
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'DimDate (2)' = ```
+		let    
+		    StartDate = #date(2018, 1, 1), //Ensure this date is the earliest in your entire data set. Use page level filters for manipulation
+		    //of start date on reports
+		    EndDate = #date(2025, 12, 31), //Place this far into the future so it doesn't disrupt AR & AP future billables and receivables
+		    Source = {Number.From(StartDate)..Number.From(EndDate)},
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Renamed Columns" = Table.RenameColumns(#"Converted to Table",{{"Column1", "Date"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}}),
+		    #"Inserted Year" = Table.AddColumn(#"Changed Type", "Year", each Date.Year([Date]), Int64.Type),
+		    #"Inserted Quarter" = Table.AddColumn(#"Inserted Year", "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+		    #"Added QuarterID" = Table.AddColumn(#"Inserted Quarter", "QuarterID", each Text.From([Year]) & "Q" & Text.From([Quarter]), type text),
+		    #"Inserted Month" = Table.AddColumn(#"Added QuarterID", "MonthNum", each Date.Month([Date]), Int64.Type),
+		    #"Added MonthID" = Table.AddColumn(#"Inserted Month", "MonthID", each Text.From([Year]) & Text.PadStart(Text.From([MonthNum]), 2, "0"), type text), 
+		    #"Inserted MonthName" = Table.AddColumn(#"Added MonthID", "MonthName", each Text.Start(Date.MonthName([Date]), 3), type text),
+		    #"Inserted MonthNameFull" = Table.AddColumn(#"Inserted MonthName", "MonthNameFull", each Date.MonthName([Date])),
+		    #"Inserted DayOfMonth" = Table.AddColumn(#"Inserted MonthNameFull", "DayOfMonth", each Date.Day([Date]), Int64.Type),
+		    #"Inserted DayOfWeek" = Table.AddColumn(#"Inserted DayOfMonth", "DayofWeek", each Date.DayOfWeek([Date]), Int64.Type),
+		    #"Inserted DayName" = Table.AddColumn(#"Inserted DayOfWeek", "DayName", each Date.DayOfWeekName([Date]), type text),
+		    #"Inserted WeekNumber" = Table.AddColumn(#"Inserted DayName", "WeekNumber", each Date.WeekOfYear([Date]), Int64.Type),
+		    #"Inserted EoWeekDate" = Table.AddColumn(#"Inserted WeekNumber", "EoWDate", each Date.EndOfWeek([Date]), type date),
+		    #"Inserted BoWeekDate" = Table.AddColumn(#"Inserted EoWeekDate", "BoWDate", each Date.StartOfWeek([Date]), type date),
+		    #"Days Since Today" = Table.AddColumn(#"Inserted BoWeekDate", "DaysSinceNow", each Duration.Days(Date.From(DateTime.LocalNow())-Date.From([Date])) ),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Days Since Today",{{"DaysSinceNow", Int64.Type}}),
+		    #"Sorted Rows" = Table.Sort(#"Changed Type1",{{"Date", Order.Ascending}}),
+		    #"Added Index" = Table.AddIndexColumn(#"Sorted Rows", "Index", 0, 1, Int64.Type),
+		    #"Added Custom" = Table.AddColumn(#"Added Index", "reverse week number", each 52 - Number.RoundDown((Date.DayOfYear([EoWDate]) - 1) / 7)),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Added Custom",{{"reverse week number", Int64.Type}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Changed Type2", {"EoWDate"}),
+		    #"Sorted Rows1" = Table.Sort(#"Removed Duplicates",{{"EoWDate", Order.Descending}}),
+		    #"Added Index1" = Table.AddIndexColumn(#"Sorted Rows1", "Index.1", 0, 1, Int64.Type)
+		in
+		    #"Added Index1"
+		```
+	lineageTag: 37aa85e5-8783-4ade-a43c-82636ff0b99c
+
+	annotation PBI_ResultType = Table
+
+expression FactSharePointUtilizationData_SplitWithMindy =
+		let
+		    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+		    #"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="Resource Utilization Tracker Working Master - 2025.xlsb",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+		    #"Imported Excel Workbook" = Excel.Workbook(#"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+		    #"Historical Data" = #"Imported Excel Workbook"{[Name="Historical Data"]}[Data],
+		    #"Removed Top Rows" = Table.Skip(#"Historical Data",1),
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+		    #"Renamed Columns3" = Table.RenameColumns(#"Promoted Headers",{{"Hubspot", "Hubspot ID"}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns3",{"Column13", "Column14", "Column15"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Billable/Non-billable#(lf)/PTO/Holiday", "HoursType"}}),
+		    #"Replaced Value4" = Table.ReplaceValue(#"Renamed Columns",",","",Replacer.ReplaceText,{"Hubspot ID"}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Replaced Value4","XXXXXXX","",Replacer.ReplaceText,{"HoursType"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","-","",Replacer.ReplaceText,{"Hourly Rate"}),
+		    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","-","",Replacer.ReplaceText,{"Total Hours"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Replaced Value2", each ([User] <> "" and [User] <> "0")),
+		    #"Replaced Value3" = Table.ReplaceValue(#"Filtered Rows","-","",Replacer.ReplaceText,{"UnBillable", "Billable", "Revenue"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value3",{{"UnBillable", type number}, {"Billable", type number}, {"Revenue", type number}, {"Hourly Rate", type number}, {"Total Hours", type number}}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type",{{"Task", "TaskType"}, {"UnBillable", "UnBillableHours"}, {"Billable", "BillableHours"}}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns1",{{"Date", type date}}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Changed Type1", "OwnerFullName", each if [MD Owner] = "Brown" then "Mark Brown" else if [MD Owner] = "Clyde" then "Jeremy Clyde" else if [MD Owner] = "Cuellar" then "Jason Cuellar" else if [MD Owner] = "Mazzanti" then "Michael Mazzanti" else if [MD Owner] = "Tauzel" then "Adam Tauzel" else if [MD Owner] = "S+H" then "S+H" else if [MD Owner] = "Internal" then "Internal" else if [MD Owner] = "Edwards" then "Matt Edwards" else if [MD Owner] = "Mattorano" then "Luke Mattorano" else if [MD Owner] = "Maples" then "Ron Maples" else null),
+		    #"Added OwnerPosition" = Table.AddColumn(#"Added Conditional Column", "OwnerPosition", each if List.Contains({"Tauzel", "Clyde", "Brown", "Edwards"}, [MD Owner]) then "Partner" else if List.Contains({"Mazzanti", "Cuellar", "Maples", "Mattorano"}, [MD Owner]) then "Managing Director" else if List.Contains({"S+H", "Internal"}, [MD Owner]) then "S+H/Internal" else null),
+		    #"Added OwnerPositionSort" = Table.AddColumn(#"Added OwnerPosition", "OwnerPositionSort", each if [OwnerPosition] = "Partner" then 1 else if [OwnerPosition] = "Managing Director" then 2 else if [OwnerPosition] = "S+H/Internal" then 3 else null),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Added OwnerPositionSort",{{"OwnerPosition", type text}, {"OwnerPositionSort", Int64.Type}}),
+		    #"Trimmed Text" = Table.TransformColumns(#"Changed Type2",{{"Hubspot ID", Text.Trim, type text}}),
+		    #"Replaced Value10" = Table.ReplaceValue(#"Trimmed Text","-","",Replacer.ReplaceText,{"Hubspot ID"}),
+		    #"Changed Type5" = Table.TransformColumnTypes(#"Replaced Value10",{{"Hubspot ID", Int64.Type}}),
+		    #"Merged Queries" = Table.NestedJoin(#"Changed Type5", {"Hubspot ID"}, FactHubSpotDeal, {"DealId"}, "FactHubSpotDeal", JoinKind.LeftOuter),
+		    #"Expanded FactHubSpotDeal" = Table.ExpandTableColumn(#"Merged Queries", "FactHubSpotDeal", {"DealSource"}, {"DealSource"}),
+		    #"Added Custom" = Table.AddColumn(#"Expanded FactHubSpotDeal", "DealSourcedBy", each if [DealSource] = "adam_tauzel" then "Adam Tauzel"
+		else if [DealSource] = "chris_steele" then "Chris Steele" else if [DealSource] = "jason_cuellar" then "Jason Cuellar" else if [DealSource] = "jeremy_clyde" then "Jeremy Clyde" else if [DealSource] = "matthew_edwards" or [DealSource] = "Matthew Edwards" then "Matt Edwards"
+		else if [DealSource] = "michael_mazzanti" then "Michael Mazzanti"
+		else if [DealSource] = "mindy_mcrae" then "Mindy McRae" else if [DealSource] = "Ronald Maples" then "Ron Maples" else [DealSource]),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Added Custom",{"DealSource"}),
+		    #"Changed Type3" = Table.TransformColumnTypes(#"Removed Columns1",{{"DealSourcedBy", type text}}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Changed Type3", each ([DealSourcedBy] = "adam_tauzel, mindy_mcrae" or [DealSourcedBy] = "adam_tauzel;mindy_mcrae")),
+		    #"Replaced Value11" = Table.ReplaceValue(#"Filtered Rows1",",",";",Replacer.ReplaceText,{"DealSourcedBy"}),
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Replaced Value11", "DealSourcedBy", Splitter.SplitTextByDelimiter(";", QuoteStyle.Csv), {"DealSourcedBy.1", "DealSourcedBy.2"}),
+		    #"Replaced Value5" = Table.ReplaceValue(#"Split Column by Delimiter","adam_tauzel","Adam Tauzel",Replacer.ReplaceValue,{"DealSourcedBy.1"}),
+		    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","mindy_mcrae","Mindy McRae",Replacer.ReplaceValue,{"DealSourcedBy.2"}),
+		    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Replaced Value6", {"Date", "User", "Main Project", "TaskType", "UnBillableHours", "BillableHours", "Revenue", "Hubspot ID", "MD Owner", "Hourly Rate", "Total Hours", "HoursType", "OwnerFullName", "OwnerPosition", "OwnerPositionSort"}, "Attribute", "Value"),
+		    #"Removed Columns2" = Table.RemoveColumns(#"Unpivoted Columns",{"Attribute"}),
+		    #"Added Custom1" = Table.AddColumn(#"Removed Columns2", "Revenue_Halved", each [Revenue] / 2),
+		    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "TotalHours_Halved", each [Total Hours] / 2),
+		    #"Added Custom3" = Table.AddColumn(#"Added Custom2", "UnbillibleHours_Halved", each [UnBillableHours] / 2),
+		    #"Added Custom4" = Table.AddColumn(#"Added Custom3", "BillibleHours_Halved", each [BillableHours] / 2),
+		    #"Removed Columns3" = Table.RemoveColumns(#"Added Custom4",{"UnBillableHours", "BillableHours", "Revenue", "Total Hours"}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns3",{{"Value", "DealSourcedBy"}, {"Revenue_Halved", "Revenue"}, {"TotalHours_Halved", "Total Hours"}, {"UnbillibleHours_Halved", "UnBillableHours"}, {"BillibleHours_Halved", "BillableHours"}}),
+		    #"Changed Type4" = Table.TransformColumnTypes(#"Renamed Columns2",{{"BillableHours", type number}, {"UnBillableHours", type number}, {"Total Hours", type number}, {"Revenue", type number}}),
+		    #"Replaced Value12" = Table.ReplaceValue(#"Changed Type4","mindy_mcrae","Mindy McRae",Replacer.ReplaceValue,{"DealSourcedBy"})
+		in
+		    #"Replaced Value12"
+	lineageTag: 7a374eb3-6610-4746-816d-56203fbfdc15
+	queryGroup: 'SharePoint Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotDeal_TableLists =
+		let
+		    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+		    dbo_DealPipelineStage = Source{[Schema="dbo",Item="DealPipelineStage"]}[Data],
+		    #"Filtered Rows" = Table.SelectRows(dbo_DealPipelineStage, each ([DealStage] = "201540478" or [DealStage] = "201540479" or [DealStage] = "201540482" or [DealStage] = "201540483" or [DealStage] = "203009852" or [DealStage] = "258279028"))
+		in
+		    #"Filtered Rows"
+	lineageTag: 4684c89b-a62f-4fc2-b776-e46b3be2d0b6
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactHubSpotDeal_Split_Source =
+		let
+		    Source = #"FactHubSpotDeal_DataSource",
+		    #"Changed Type1" = Table.TransformColumnTypes(Source,{{"DealId", type text}}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1",{{"hs_acv", "Annual Contract Value"}, {"hs_deal_stage_probability", "StageProbabilty"}, {"closedate", "CloseDate"}, {"createdate", "CreateDate"}, {"closed_lost_reason", "ClosedLostReason"}, {"amount", "Amount"}, {"days_to_close", "DaystoClose"}, {"dealname", "DealName"}, {"dealstage", "DealStage"}, {"dealtype", "DealType"}, {"description", "Description"}, {"hs_all_owner_ids", "OwnerID"}, {"hs_closed_amount", "ClosedAmount"}, {"hs_forecast_amount", "ForecastAmount"}, {"hs_forecast_probability", "ForecastProbability"}, {"hs_is_closed", "IsClosed"}, {"hs_is_closed_won", "IsClosedWon"}, {"hs_lastmodifieddate", "LastModifiedDate"}, {"hs_projected_amount", "ProjectedAmount"}, {"pipeline", "Pipeline"}, {"deal_source", "DealSource"}}),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Renamed Columns",{"DealId", "agreement_engagement_letter", "Amount", "ClosedLostReason", "closed_won_reason", "CloseDate", "CreateDate", "DaystoClose", "deal_attributed_to", "DealSource", "deal_tag", "DealName", "DealStage", "DealType", "Description", "Annual Contract Value", "OwnerID", "hs_analytics_source", "hs_campaign", "ClosedAmount", "hs_closed_deal_close_date", "hs_closed_deal_create_date", "hs_closed_won_count", "hs_closed_won_date", "hs_deal_score", "StageProbabilty", "ForecastAmount", "ForecastProbability", "IsClosed", "hs_is_closed_count", "hs_is_closed_lost", "IsClosedWon", "hs_is_in_first_deal_stage", "hs_is_open_count", "LastModifiedDate", "hs_latest_approval_status", "hs_latest_approval_status_approval_id", "hs_latest_meeting_activity", "hs_likelihood_to_close", "hs_num_target_accounts", "hs_object_id", "hs_object_source", "hs_object_source_id", "hs_object_source_label", "hs_object_source_user_id", "hs_open_deal_create_date", "hs_pinned_engagement_id", "hs_predicted_amount", "hs_predicted_amount_in_home_currency", "hs_priority", "ProjectedAmount", "hs_projected_amount_in_home_currency", "hubspot_owner_id", "hubspot_team_id", "notes_last_contacted", "notes_last_updated", "notes_next_activity_date", "original_amount_value", "Pipeline", "proposal", "referral_tier", "referred_by", "referred_in_out", "service_line", "target_type"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"CloseDate", type date}, {"CreateDate", type date}, {"LastModifiedDate", type date}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","9964364","closedwon",Replacer.ReplaceText,{"DealStage"}),
+		    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value","default","Solutions Pipeline",Replacer.ReplaceText,{"Pipeline"}),
+		    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","113522976","Smith + Howard Referral Tracker",Replacer.ReplaceText,{"Pipeline"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value5","13214522","closedlost",Replacer.ReplaceText,{"DealStage"}),
+		    #"Merged Queries" = Table.NestedJoin(#"Replaced Value1", {"DealStage"}, DealPipelineStage, {"DealStage"}, "DealPipelineStage", JoinKind.LeftOuter),
+		    #"Expanded DealPipelineStage" = Table.ExpandTableColumn(#"Merged Queries", "DealPipelineStage", {"DisplayOrder", "StageLabel"}, {"DealPipelineStage.DisplayOrder", "DealPipelineStage.StageLabel"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Expanded DealPipelineStage",{{"DealPipelineStage.StageLabel", "DealStageName"}, {"DealPipelineStage.DisplayOrder", "DisplayOrder"}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns1",{"DealId", "Amount", "ClosedLostReason", "CloseDate", "CreateDate", "DaystoClose", "DealName", "DealStage", "DealStageName", "DealType", "Description", "Annual Contract Value", "OwnerID", "ClosedAmount", "StageProbabilty", "ForecastAmount", "ForecastProbability", "IsClosed", "IsClosedWon", "LastModifiedDate", "ProjectedAmount", "Pipeline", "DealSource"}),
+		    #"Replaced Value6" = Table.ReplaceValue(#"Reordered Columns","39965002, 193996555","193996555",Replacer.ReplaceText,{"OwnerID"}),
+		    #"Changed Type3" = Table.TransformColumnTypes(#"Replaced Value6",{{"OwnerID", Int64.Type}}),
+		    #"Merged Queries1" = Table.NestedJoin(#"Changed Type3", {"OwnerID"}, FactHubSpotOwner, {"hubspot_owner_id"}, "Owner", JoinKind.LeftOuter),
+		    #"Expanded Owner" = Table.ExpandTableColumn(#"Merged Queries1", "Owner", {"FirstName", "FullName"}, {"Owner.FirstName", "Owner.FullName"}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Expanded Owner",{{"Owner.FirstName", "FirstName"}, {"Owner.FullName", "FullName"}}),
+		    #"Replaced Value2" = Table.ReplaceValue(#"Renamed Columns2",null,"Unassigned",Replacer.ReplaceValue,{"FullName"}),
+		    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2",null,"Unassigned",Replacer.ReplaceValue,{"FirstName"}),
+		    #"Added DaysSinceClose" = Table.AddColumn(#"Replaced Value3", "DaysSinceClose", each Duration.Days(Date.From(DateTime.LocalNow())-Date.From([CloseDate])) ),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Added DaysSinceClose",{{"DaysSinceClose", Int64.Type}}),
+		    #"Added AgeBucket" = Table.AddColumn(#"Changed Type2", "AgeBucket", each if [DaysSinceClose] < 0 then "Future" else if [DaysSinceClose] <= 6 then "Last 7 Days" else if [DaysSinceClose] <= 29 then "8 - 30 Days" else if [DaysSinceClose] <= 89 then "31 - 90 Days" else "90+ Days"),
+		    #"Added AgeID" = Table.AddColumn(#"Added AgeBucket", "AgeID", each if [AgeBucket] = "Future" then 0 else if [AgeBucket] = "Last 7 Days" then 1 else if [AgeBucket] = "8 - 30 Days" then 2 else if [AgeBucket] = "31 - 90 Days" then 3 else 4),
+		    #"Changed Type4" = Table.TransformColumnTypes(#"Added AgeID",{{"DealId", Int64.Type}}),
+		    #"Renamed Columns3" = Table.RenameColumns(#"Changed Type4",{{"FullName", "Director"}}),
+		    #"Merged Queries4" = Table.NestedJoin(#"Renamed Columns3", {"DealSource"}, SalesBudgetBuckets, {"SalesRep"}, "SalesBudgetBuckets", JoinKind.LeftOuter),
+		    #"Expanded SalesBudgetBuckets" = Table.ExpandTableColumn(#"Merged Queries4", "SalesBudgetBuckets", {"1/1/2024"}, {"SalesBudgetBuckets.1/1/2024"}),
+		    #"Renamed Columns4" = Table.RenameColumns(#"Expanded SalesBudgetBuckets",{{"service_line", "ServiceLine"}}),
+		    #"Added LatestRefreshDate" = Table.AddColumn(#"Renamed Columns4", "LastRefreshDate", each DateTime.LocalNow()),
+		    #"Merged Queries5" = Table.NestedJoin(#"Added LatestRefreshDate", {"hubspot_owner_id"}, FactHubSpotOwner, {"hubspot_owner_id"}, "FactHubSpotOwner", JoinKind.LeftOuter),
+		    #"Expanded FactHubSpotOwner" = Table.ExpandTableColumn(#"Merged Queries5", "FactHubSpotOwner", {"FullName"}, {"OwnerFullName"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Expanded FactHubSpotOwner", each ([DealSource] = "adam_tauzel, mindy_mcrae" or [DealSource] = "adam_tauzel, smith___howard" or [DealSource] = "adam_tauzel;mindy_mcrae")),
+		    #"Added OwnerPosition" = Table.AddColumn(#"Filtered Rows", "OwnerPosition", each if [OwnerFullName] = "Matthew Edwards" then "Managing Partner" else if List.Contains({"Adam Tauzel", "Mark Brown", "Jeremy Clyde"}, [OwnerFullName]) then "Partner" else if List.Contains({"Corey Fields", "Michael Mosley", "Robert Burns", "Brad Ramsey"}, [OwnerFullName]) then "Director" else if List.Contains({"Jason Cuellar", "Michael Mazzanti", "Ronald Maples"}, [OwnerFullName]) then "Managing Director" else if [OwnerFullName] = "Mindy McRae" then "Bus Development Manager" else if List.Contains({"Chris Murphy", "Luke Mattorano", "Marissa Bonner", "Madison Schmidt", "Madison Mullins", "Chris Steele"}, [OwnerFullName]) then "Operations" else null),
+		    #"Added DealSource_Cleaned" = Table.AddColumn(#"Added OwnerPosition", "DealSource_Cleaned", each if [DealSource] = "matthew_edwards" then "Matthew Edwards" else if List.Contains({"adam_tauzel;mindy_mcrae", "adam_tauzel, mindy_mcrae"}, [DealSource]) then "Adam Tauzel/Mindy McRae" else if [DealSource] = "chris_steele" then "Chris Steele" else if [DealSource] = "jason_cuellar" then "Jason Cuellar" else if [DealSource] = "broad_sky_partners" then "Broad Sky Partners" else if [DealSource] = "jeremy_clyde" then "Jeremy Clyde" else if [DealSource] = "lannie_morgan" then "Lannie Morgan" else if [DealSource] = "luke_mattorano" then "Luke Mattorano" else if [DealSource] = "mindy_mcrae" then "Mindy McRae" else if [DealSource] = "michael_mazzanti" then "Michael Mazzanti" else if [DealSource] = "mark_brown" then "Mark Brown" else if [DealSource] = "adam_tauzel" then "Adam Tauzel" else if [DealSource] = "ronald_maples" then "Ronald Maples" else if [DealSource] = "kim_compton" then "Kim Compton" else if List.Contains({"Smith + Howard", "smith__howard"}, [DealSource]) then "S+H" else [DealSource]),
+		    #"Added DealSourcePosition" = Table.AddColumn(#"Added DealSource_Cleaned", "DealSourcePosition", each if [DealSource_Cleaned] = "Matthew Edwards" then "Managing Partner" else if List.Contains({"Adam Tauzel", "Mark Brown", "Jeremy Clyde"}, [DealSource_Cleaned]) then "Partner" else if List.Contains({"Corey Fields", "Michael Mosley", "Robert Burns", "Brad Ramsey"}, [DealSource_Cleaned]) then "Director" else if List.Contains({"Jason Cuellar", "Michael Mazzanti", "Ronald Maples"}, [DealSource_Cleaned]) then "Managing Director" else if [DealSource_Cleaned] = "Mindy McRae" then "Bus Development Manager" else if List.Contains({"Chris Murphy", "Luke Mattorano", "Marissa Bonner", "Madison Schmidt", "Madison Mullins", "Chris Steele"}, [DealSource_Cleaned]) then "Operations" else null),
+		    #"Added DealSourcePositionSort" = Table.AddColumn(#"Added DealSourcePosition", "DealSourcePositionSort", each if [DealSource_Cleaned] = "Matthew Edwards" then 1 else if List.Contains({"Adam Tauzel", "Mark Brown", "Jeremy Clyde"}, [DealSource_Cleaned]) then 2 else if List.Contains({"Corey Fields", "Michael Mosley", "Robert Burns", "Brad Ramsey"}, [DealSource_Cleaned]) then 4 else if List.Contains({"Jason Cuellar", "Michael Mazzanti", "Ronald Maples"}, [DealSource_Cleaned]) then 5 else if [DealSource_Cleaned] = "Mindy McRae" then 3 else if List.Contains({"Chris Murphy", "Luke Mattorano", "Marissa Bonner", "Madison Schmidt", "Madison Mullins", "Chris Steele"}, [DealSource_Cleaned]) then 6 else null),
+		    #"Replaced Value7" = Table.ReplaceValue(#"Added DealSourcePositionSort",",","/",Replacer.ReplaceText,{"DealSource_Cleaned"}),
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Replaced Value7", "DealSource_Cleaned", Splitter.SplitTextByDelimiter("/", QuoteStyle.Csv), {"DealSource_Cleaned.1", "DealSource_Cleaned.2"}),
+		    #"Trimmed Text" = Table.TransformColumns(#"Split Column by Delimiter",{{"DealSource_Cleaned.2", Text.Trim, type text}}),
+		    #"Replaced Value8" = Table.ReplaceValue(#"Trimmed Text","adam_tauzel","Adam Tauzel",Replacer.ReplaceText,{"DealSource_Cleaned.1"}),
+		    #"Replaced Value9" = Table.ReplaceValue(#"Replaced Value8","smith___howard","S+H",Replacer.ReplaceText,{"DealSource_Cleaned.2"}),
+		    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Replaced Value9", {"DealId", "agreement_engagement_letter", "Amount", "ClosedLostReason", "closed_won_reason", "CloseDate", "CreateDate", "DaystoClose", "deal_attributed_to", "DealName", "deal_tag", "DealStage", "DealStageName", "DealType", "Description", "Annual Contract Value", "OwnerID", "hs_analytics_source", "hs_campaign", "ClosedAmount", "hs_closed_deal_close_date", "hs_closed_deal_create_date", "hs_closed_won_count", "hs_closed_won_date", "hs_deal_score", "StageProbabilty", "ForecastAmount", "ForecastProbability", "IsClosed", "hs_is_closed_count", "hs_is_closed_lost", "IsClosedWon", "hs_is_in_first_deal_stage", "hs_is_open_count", "LastModifiedDate", "hs_latest_approval_status", "hs_latest_approval_status_approval_id", "hs_latest_meeting_activity", "hs_likelihood_to_close", "hs_num_target_accounts", "hs_object_id", "hs_object_source", "hs_object_source_id", "hs_object_source_label", "hs_object_source_user_id", "hs_open_deal_create_date", "hs_pinned_engagement_id", "hs_predicted_amount", "hs_predicted_amount_in_home_currency", "hs_priority", "ProjectedAmount", "hs_projected_amount_in_home_currency", "hubspot_owner_id", "hubspot_team_id", "notes_last_contacted", "notes_last_updated", "notes_next_activity_date", "original_amount_value", "Pipeline", "proposal", "referral_tier", "referred_by", "referred_in_out", "ServiceLine", "target_type", "DisplayOrder", "DealSource", "FirstName", "Director", "DaysSinceClose", "AgeBucket", "AgeID", "SalesBudgetBuckets.1/1/2024", "LastRefreshDate", "OwnerFullName", "OwnerPosition", "DealSourcePosition", "DealSourcePositionSort"}, "Attribute", "Value"),
+		    #"Renamed Columns5" = Table.RenameColumns(#"Unpivoted Columns",{{"Value", "DealSource_Cleaned"}}),
+		    #"Added Custom" = Table.AddColumn(#"Renamed Columns5", "Amount_New", each [Amount] / 2),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"Amount", "Attribute"}),
+		    #"Renamed Columns6" = Table.RenameColumns(#"Removed Columns",{{"Amount_New", "Amount"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns6",{"DealSourcePosition", "DealSourcePositionSort"}),
+		    #"Added Custom1" = Table.AddColumn(#"Removed Columns1", "DealSourcePosition", each if [DealSource_Cleaned] = "Adam Tauzel" then "Partner" else if [DealSource_Cleaned] = "S+H" then "Other" else if [DealSource_Cleaned] = "Mindy McRae" then "Bus Development Manager" else null),
+		    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "DealSourcePositionSort", each if [DealSource_Cleaned] = "Adam Tauzel" then 2 else if [DealSource_Cleaned] = "S+H" then 6 else if [DealSource_Cleaned] = "Mindy McRae" then 3 else null)
+		in
+		    #"Added Custom2"
+	lineageTag: 63e2779d-5eed-4a29-bb7b-ac4b432db420
+	queryGroup: 'HubSpot Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactUnbillableSandboxData_Unload =
+		let
+		    Source = Excel.Workbook(File.Contents("C:\Users\DavidThibodeaux\OneDrive - VIP Search Group\WORK\Internal\S+H\Example Reports\Unbillable Time Sandbox_Updated Draft.xlsx"), null, true),
+		    Sandbox_FlatData_Sheet = Source{[Item="Sandbox_FlatData",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(Sandbox_FlatData_Sheet, [PromoteAllScalars=true]),
+		    #"Filtered Rows" = Table.SelectRows(#"Promoted Headers", each ([Priority] <> null)),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"Description", type text}, {"Task Name", type text}, {"Category", type text}, {"Currently Checked Out To", type text}, {"Leader", type text}, {"Status", type text}, {"Link to Deliverable/Collateral", type text}, {"Deliverable Hyperlink", type text}, {"Priority", Int64.Type}}),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Changed Type",{"Priority", "Task Name", "Category", "Description", "Currently Checked Out To", "Leader", "Status", "Link to Deliverable/Collateral", "Deliverable Hyperlink"}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Removed Other Columns",null,"Unassigned",Replacer.ReplaceValue,{"Currently Checked Out To"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",null,"N/A",Replacer.ReplaceValue,{"Status"})
+		in
+		    #"Replaced Value1"
+	lineageTag: 8d6a525d-09b0-4746-aef3-5873d40d2cfb
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactNeededCaseStudies_Unload =
+		let
+		    Source = Excel.Workbook(File.Contents("C:\Users\DavidThibodeaux\OneDrive - VIP Search Group\WORK\Internal\S+H\Example Reports\Unbillable Time Sandbox_Updated Draft.xlsx"), null, true),
+		    #"Case Studies Needed_Sheet" = Source{[Item="Case Studies Needed",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Case Studies Needed_Sheet", [PromoteAllScalars=true]),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Record ID", Int64.Type}, {"Deal Name", type text}, {"Associated Company (Primary)", type text}, {"Deal Stage", type text}, {"Deal owner", type text}, {"Create Date", type datetime}, {"Amount", type number}})
+		in
+		    #"Changed Type"
+	lineageTag: b62c010f-b96b-49db-b94c-cee148f05c7a
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

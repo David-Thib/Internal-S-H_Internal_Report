@@ -1,0 +1,9 @@
+{
+  "version": "4.0",
+  "datasetReference": {
+    "byPath": {
+      "path": "../S+H Solutions Internal.SemanticModel"
+    },
+    "byConnection": null
+  }
+}

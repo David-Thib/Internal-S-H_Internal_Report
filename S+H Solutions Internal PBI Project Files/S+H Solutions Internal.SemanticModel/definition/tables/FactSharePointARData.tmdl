@@ -1,0 +1,171 @@
+table FactSharePointARData
+	lineageTag: bae70728-aa06-4723-b168-7c7bd83d07dc
+
+	measure 'Total AR Dollar Amount' =
+			
+			SUM(FactSharePointARData[ARAmount])
+		lineageTag: a699ce39-bac3-48d4-b5cf-7e5a15c0fdb8
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (Current)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "Current")
+			)
+		lineageTag: 107ddb38-310f-45cf-9417-24811d3a848e
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (31-60)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "31-60")
+			)
+		lineageTag: 49e9afe4-3a07-44fc-a328-4df9541058f6
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (61-90)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "61-90")
+			)
+		lineageTag: a3d4c7b1-2b0f-4312-b9cc-bde244074ee1
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (91-120)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "91-120")
+			)
+		lineageTag: b2b06bfa-3c66-44d5-98e0-7d36565bde48
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (121-180)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "121-180")
+			)
+		lineageTag: e3ef1672-4908-4314-bfde-148e31ada0e6
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (181-360)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "181-360")
+			)
+		lineageTag: b912d976-4e34-48b3-b8a0-af52d015cb36
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (Over 360)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "Over 360")
+			)
+		lineageTag: 177b2151-1c1c-4d00-a7a2-2c1e77540956
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (Under 60 Days)' =
+			
+			[Total AR Dollars Amount (Current)] + [Total AR Dollars Amount (31-60)]
+		lineageTag: 596f096d-c8d6-464d-86ad-63699c2d29a6
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total AR Dollars Amount (Over 90 Days)' =
+			
+			CALCULATE(
+			    [Total AR Dollar Amount],
+			    KEEPFILTERS(DimAgingCategory[AgingCategory] = "Over 91")
+			)
+		lineageTag: 0a939332-c21e-4d67-a834-84f487a3558c
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	column Owner
+		dataType: string
+		lineageTag: d17915dd-1a67-4417-b154-d7dd8ce39d9d
+		summarizeBy: none
+		sourceColumn: Owner
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClientName
+		dataType: string
+		lineageTag: 5abf45c8-5b54-4ecf-898b-4f1babc27b2b
+		summarizeBy: none
+		sourceColumn: ClientName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ARAmount
+		dataType: double
+		lineageTag: 41971578-3de8-4b0e-8ad6-dac5642294f2
+		summarizeBy: sum
+		sourceColumn: ARAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AgingCategoryID
+		dataType: int64
+		formatString: 0
+		lineageTag: 6214b5bc-241b-4ecc-a5cc-3c58c3180344
+		summarizeBy: none
+		sourceColumn: AgingCategoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactSharePointARData = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+				    #"SH Consulting Actual Hours - Working - 2025 xlsx_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="SH Consulting Actual Hours - Working - 2025.xlsx",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"SH Consulting Actual Hours - Working - 2025 xlsx_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+				    #"AR Data_Sheet" = #"Imported Excel Workbook"{[Item="AR Data",Kind="Sheet"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(#"AR Data_Sheet",{"Column1", "Column2"}),
+				    #"Removed Top Rows" = Table.Skip(#"Removed Columns",2),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Promoted Headers",{"Owner", "ClientName", "Total", "Curr", "31-60", "61-90", "91-120", "121-180", "181-360", "Over 360"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Other Columns", each ([ClientName] <> null and [ClientName] <> "")),
+				    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "Over 91", each [#"91-120"] + [#"121-180"] + [#"181-360"] + [Over 360]),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Custom",{"91-120", "121-180", "181-360", "Over 360"}),
+				    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Removed Columns2", {"ClientName", "Owner"}, "Attribute", "Value"),
+				    #"Filtered Rows1" = Table.SelectRows(#"Unpivoted Other Columns", each ([Attribute] <> "Total")),
+				    #"Renamed Columns" = Table.RenameColumns(#"Filtered Rows1",{{"Attribute", "AgingCategory"}, {"Value", "ARAmount"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"ARAmount", type number}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","Curr","Current",Replacer.ReplaceText,{"AgingCategory"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Replaced Value", {"AgingCategory"}, DimAgingCategory, {"AgingCategory"}, "DimAgingCategory", JoinKind.LeftOuter),
+				    #"Expanded DimAgingCategory" = Table.ExpandTableColumn(#"Merged Queries", "DimAgingCategory", {"AgingCategoryID"}, {"AgingCategoryID"}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Expanded DimAgingCategory",{"AgingCategory"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Removed Columns1","Edwards","Matt Edwards",Replacer.ReplaceText,{"Owner"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Mazzanti","Michael Mazzanti",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","Clyde","Jeremy Clyde",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","Brown","Mark Brown",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","Tauzel","Adam Tauzel",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","Cuellar","Jason Cuellar",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","Mattorano","Luke Mattorano",Replacer.ReplaceValue,{"Owner"}),
+				    #"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","Maples","Ron Maples",Replacer.ReplaceValue,{"Owner"})
+				in
+				    #"Replaced Value8"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,95 @@
+table SalesBudgetBuckets
+	lineageTag: d57a8e6b-d8ac-4e2a-a4f8-fa030df42bb7
+
+	column Level
+		dataType: string
+		isHidden
+		lineageTag: b0c215b0-4980-4207-aa86-eac3bcf9fe35
+		summarizeBy: none
+		sourceColumn: Level
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Bucket'
+		dataType: string
+		lineageTag: f0e5e959-688e-4468-a108-606acb23414a
+		summarizeBy: none
+		sourceColumn: Sales Bucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesRep
+		dataType: string
+		lineageTag: 59b4f604-22bf-43b2-9692-298c0f1b9ca4
+		summarizeBy: none
+		sourceColumn: SalesRep
+
+		annotation SummarizationSetBy = Automatic
+
+	column 1/1/2022
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a8055f94-bf0b-4bcb-b940-54f66092b410
+		summarizeBy: sum
+		sourceColumn: 1/1/2022
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column 'Stretch Budget'
+		dataType: double
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 04319dcd-ed6d-4930-9ce9-c66180ddcf75
+		summarizeBy: sum
+		sourceColumn: Stretch Budget
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Original Budget'
+		dataType: double
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 89dbca5c-f219-4ce9-b3bb-cec28a27b694
+		summarizeBy: sum
+		sourceColumn: Original Budget
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Stretch Goal' = SUM(SalesBudgetBuckets[Stretch Budget])
+		lineageTag: f544dc14-e8a6-45eb-a743-936c592bc1cc
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 1/1/2024
+		dataType: decimal
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 84bab7d5-a17a-4eff-b0cd-f21964b8d47e
+		summarizeBy: sum
+		sourceColumn: 1/1/2024
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition SalesBudgetBuckets-2d5473ee-a773-4c58-9678-62dda6ed45a5 = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = #"SalesBudgetBuckets - Source",
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"6/1/2023", type number}, {"1/1/2022", Currency.Type}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([#"6/1/2023"] <> null)),
+				    #"Renamed Columns" = Table.RenameColumns(#"Filtered Rows",{{"1/1/2023", "Original Budget"}, {"6/1/2023", "Stretch Budget"}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"1/1/2024", Currency.Type}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

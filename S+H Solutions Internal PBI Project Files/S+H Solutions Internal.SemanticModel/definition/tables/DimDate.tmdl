@@ -1,0 +1,456 @@
+table DimDate
+	lineageTag: b9b0d225-0b22-4256-aeee-f3b2ad59c7a5
+	dataCategory: Time
+
+	measure SumofMonthDays = SUM(DimDate[DayOfMonth])
+		formatString: 0
+		lineageTag: 9f8e4d59-8979-4e22-9b9e-3a85cc530b13
+
+	measure 'Divider Line' =
+			
+			BLANK()
+		formatString: 0
+		lineageTag: 17b88447-f765-4019-a0a0-91310cb5ada0
+
+	measure 'Blank Value' =
+			
+			""
+		lineageTag: ffca2b24-eab2-40e5-91eb-e287848fef43
+
+	measure 'Current Week Date Value' =
+			
+			LASTDATE(DimDate[EoWDate])
+		formatString: Short Date
+		lineageTag: 4c2fe71e-c5c6-444b-a897-5d1c417c8c7e
+
+	measure 'Prior Week Date Value_ProjectRevenue' =
+			
+			[Current Week Date Value] - 7
+		formatString: Short Date
+		lineageTag: 166ac731-c888-43da-9f68-253b11f7492a
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		lineageTag: 5de5dabc-69f4-4b66-ad50-4bae25c7ee08
+		summarizeBy: none
+		sourceColumn: Date
+		sortByColumn: 'reverse week number'
+
+		changedProperty = FormatString
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 21a24ac4-e61b-49d1-8048-269239ca2520
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 85b1c688-a27d-40bd-a7c3-0fbffea836a9
+		summarizeBy: sum
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column QuarterID
+		dataType: string
+		lineageTag: 330ab7a0-0c89-4157-b7f4-228af8f1b6ca
+		summarizeBy: none
+		sourceColumn: QuarterID
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNum
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ae55f88-cecf-4260-a06b-1159c38df379
+		summarizeBy: sum
+		sourceColumn: MonthNum
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthID
+		dataType: string
+		lineageTag: 4cbafebf-116a-49aa-bcd2-4906652dcdb9
+		summarizeBy: none
+		sourceColumn: MonthID
+		sortByColumn: MonthName
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: 65bac136-0783-4042-8b7e-b613271f2317
+		summarizeBy: none
+		sourceColumn: MonthName
+		sortByColumn: MonthNum
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 49a85f80-e72c-4f50-81d2-f4ece57b1043
+		summarizeBy: sum
+		sourceColumn: DayOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayofWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: 489091eb-fe19-49bb-9451-e064dcf49f21
+		summarizeBy: sum
+		sourceColumn: DayofWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayName
+		dataType: string
+		lineageTag: ccdd1fb0-f79b-40bf-a860-cecd2f47fc24
+		summarizeBy: none
+		sourceColumn: DayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: ae3913e8-143c-4281-a1d4-7db1375ffef1
+		summarizeBy: sum
+		sourceColumn: WeekNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNameFull
+		dataType: string
+		lineageTag: 6f79fb65-d800-4757-9e68-d050543ae9b3
+		summarizeBy: none
+		sourceColumn: MonthNameFull
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYear = DimDate[MonthNameFull]&" "&DimDate[Year]
+		lineageTag: 81705c75-7fdc-4034-8cc1-e8f07ebfc6c4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column EoM = ENDOFMONTH(DimDate[Date])
+		formatString: Short Date
+		lineageTag: 711e3ba8-d1ff-47c5-9214-1e5befe8264a
+		summarizeBy: none
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column Future = IF(DimDate[Date]<TODAY(),"Current","Future")
+		lineageTag: 1a76e3cc-bcda-49da-a3cb-9ec2dc045a6c
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysSinceNow
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f720b42-ea94-4e2b-912c-c56b29c923bb
+		summarizeBy: sum
+		sourceColumn: DaysSinceNow
+
+		annotation SummarizationSetBy = Automatic
+
+	column EoWDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e0a9c060-ad65-4135-a613-d63fead0525c
+		summarizeBy: none
+		sourceColumn: EoWDate
+		sortByColumn: 'DimDate (2).Index.1'
+
+		changedProperty = FormatString
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BoWDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e0405381-dfe7-4339-a20b-09714686a956
+		summarizeBy: none
+		sourceColumn: BoWDate
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: 606cebb5-09bf-4456-9ab9-6d477f8e4c16
+		summarizeBy: sum
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'reverse week number'
+		dataType: int64
+		formatString: 0
+		lineageTag: b7a33987-f3e8-4b74-94f8-31b6da9e0407
+		summarizeBy: sum
+		sourceColumn: reverse week number
+
+		annotation SummarizationSetBy = Automatic
+
+	column matrixsortdesc = RANKX(DimDate, DimDate[WeekNumber], , DESC)
+		formatString: 0
+		lineageTag: 9109c3a7-5f26-48d8-817f-c3b7ad57eb13
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column sortor = RANKX(DimDate, DimDate[Date], , DESC)
+		formatString: 0
+		lineageTag: 81e8611f-d07f-46b8-965b-ce6e326e427e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'sort group'
+		type: calculated
+		lineageTag: a05a9694-a1bf-4714-8dc6-020657519ac7
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimDate (2).reverse week number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 08b1aee9-36c6-47ef-a784-d32337c7aee3
+		summarizeBy: sum
+		sourceColumn: DimDate (2).reverse week number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimDate (2).Index.1'
+		dataType: int64
+		formatString: 0
+		lineageTag: 502ce95f-458b-49bc-a82d-4597ce00ec6d
+		summarizeBy: sum
+		sourceColumn: DimDate (2).Index.1
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentWeekValue =
+			
+			VAR WeekEndingDate = DimDate[EoWDate]
+			VAR CurrentWeek = LOOKUPVALUE(DimDate[EoWDate], DimDate[Date], TODAY())
+			RETURN
+			IF(WeekEndingDate = CurrentWeek, "Latest Week Ending", FORMAT(WeekEndingDate, ""))
+		lineageTag: e78e5f98-0909-4e9e-ae65-d47ef4b035ff
+		summarizeBy: none
+		sortByColumn: EoWDate
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 1a1cb5c6-00fe-4de4-a184-42119800b2c4
+		summarizeBy: none
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentFiscalYearFlag =
+			
+			VAR CurrentFiscalYear =
+			LOOKUPVALUE(DimDate[FiscalYear], DimDate[Date], TODAY())
+			RETURN
+			IF(
+			    DimDate[FiscalYear] = CurrentFiscalYear,
+			    "Current Year",
+			    FORMAT(DimDate[FiscalYear], "")
+			)
+		dataType: string
+		lineageTag: 988cbb26-5ff8-4283-9c41-17175d5d316e
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarterNumber = ```
+			
+			VAR RecordDate = DimDate[Date]
+			RETURN
+			SWITCH(TRUE(),
+			    MONTH(RecordDate) IN {11, 12, 1}, 1,
+			    MONTH(RecordDate) IN {2, 3, 4}, 2,
+			    MONTH(RecordDate) IN {5, 6, 7}, 3,
+			    MONTH(RecordDate) IN {8, 9, 10}, 4
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 1b5d1156-5292-49a0-935c-c5245a399bf7
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter =
+			
+			"Q" & DimDate[FiscalQuarterNumber] & "'" & RIGHT(DimDate[FiscalYear], 2)
+		lineageTag: acc781b0-9684-4693-9539-6268af4452a1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalWeekNumber = ```
+			
+			VAR CurrentDate = DimDate[Date]  // Replace [Date] with your actual date column name
+			VAR FiscalYearStart = 
+			    DATE(YEAR(CurrentDate) - IF(MONTH(CurrentDate) < 11, 1, 0), 11, 1)  // November 1 of the fiscal year
+			VAR FiscalYearStartSunday = 
+			    FiscalYearStart - WEEKDAY(FiscalYearStart, 1) + 1  // Start on the Sunday of the week containing November 1
+			VAR FiscalYearEnd = 
+			    DATE(YEAR(FiscalYearStart) + 1, 10, 31)  // October 31 of the fiscal year
+			VAR FiscalYearEndSaturday = 
+			    FiscalYearEnd + (7 - WEEKDAY(FiscalYearEnd, 1))  // End on the Saturday of the week containing October 31
+			VAR DaysSinceFiscalYearStart = 
+			    DATEDIFF(FiscalYearStartSunday, CurrentDate, DAY) + 1  // Days since the start of the fiscal year
+			VAR WeekNumber = 
+			    IF(
+			        CurrentDate >= FiscalYearStartSunday && CurrentDate <= FiscalYearEndSaturday,
+			        CEILING(DaysSinceFiscalYearStart / 7, 1),  // Calculate week number
+			        BLANK()  // Return BLANK() for dates outside the fiscal year
+			    )
+			RETURN
+			    WeekNumber
+			```
+		formatString: 0
+		lineageTag: e09348ad-b7f5-4228-a221-c7a64675e0bb
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthEndingDate =
+			
+			VAR MonthYearDate = DimDate[MonthYear]
+			RETURN
+			CALCULATE(
+			    LASTDATE(DimDate[Date]),
+			    ALL(DimDate),
+			    DimDate[MonthYear] = MonthYearDate
+			)
+		formatString: Short Date
+		lineageTag: ce228fab-e80b-41eb-9a5d-28ef7469f2bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column LatestWeekEndingDate_Utilization =
+			
+			VAR CurrentDate = TODAY()
+			VAR LatestUtilizationDate =
+			CALCULATE(
+			    MAX(FactSharePointUtilizationData[WeekEndingDate_Related]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Date] <= CurrentDate
+			)
+			RETURN
+			FORMAT( IF(DimDate[EoWDate] = DATEVALUE(LatestUtilizationDate), "Latest Week Available", DimDate[EoWDate]), "")
+		dataType: string
+		lineageTag: 8be072b1-c594-498d-a969-f8de89fb6848
+		summarizeBy: none
+		sortByColumn: LatestWeekEndingDateSort_Utilization
+
+		changedProperty = DataType
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column LatestWeekEndingDateSort_Utilization =
+			
+			VAR CurrentDate = TODAY()
+			VAR LatestUtilizationDate =
+			CALCULATE(
+			    MAX(FactSharePointUtilizationData[WeekEndingDate_Related]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Date] <= CurrentDate
+			)
+			RETURN
+			IF(DimDate[EoWDate] = DATEVALUE(LatestUtilizationDate), 0, DATEDIFF(LatestUtilizationDate, DimDate[EoWDate], WEEK))
+		formatString: 0
+		lineageTag: e9522b6a-bb31-418b-82a5-aed06e081b08
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate-296385fb-7f97-4ed5-be81-6fa0bd1b1cba = m
+		mode: import
+		source = ```
+				let    
+				    StartDate = #date(2022, 1, 1), //Ensure this date is the earliest in your entire data set. Use page level filters for manipulation
+				    //of start date on reports
+				    EndDate = Date.AddYears(DateTime.Date(DateTime.LocalNow()), 2), //Place this far into the future so it doesn't disrupt AR & AP future billables and receivables
+				    Source = {Number.From(StartDate)..Number.From(EndDate)},
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Renamed Columns" = Table.RenameColumns(#"Converted to Table",{{"Column1", "Date"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}}),
+				    #"Inserted Year" = Table.AddColumn(#"Changed Type", "Year", each Date.Year([Date]), Int64.Type),
+				    #"Inserted Quarter" = Table.AddColumn(#"Inserted Year", "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+				    #"Added QuarterID" = Table.AddColumn(#"Inserted Quarter", "QuarterID", each Text.From([Year]) & "Q" & Text.From([Quarter]), type text),
+				    #"Inserted Month" = Table.AddColumn(#"Added QuarterID", "MonthNum", each Date.Month([Date]), Int64.Type),
+				    #"Added MonthID" = Table.AddColumn(#"Inserted Month", "MonthID", each Text.From([Year]) & Text.PadStart(Text.From([MonthNum]), 2, "0"), type text), 
+				    #"Inserted MonthName" = Table.AddColumn(#"Added MonthID", "MonthName", each Text.Start(Date.MonthName([Date]), 3), type text),
+				    #"Inserted MonthNameFull" = Table.AddColumn(#"Inserted MonthName", "MonthNameFull", each Date.MonthName([Date])),
+				    #"Inserted DayOfMonth" = Table.AddColumn(#"Inserted MonthNameFull", "DayOfMonth", each Date.Day([Date]), Int64.Type),
+				    #"Inserted DayOfWeek" = Table.AddColumn(#"Inserted DayOfMonth", "DayofWeek", each Date.DayOfWeek([Date]), Int64.Type),
+				    #"Inserted DayName" = Table.AddColumn(#"Inserted DayOfWeek", "DayName", each Date.DayOfWeekName([Date]), type text),
+				    #"Inserted WeekNumber" = Table.AddColumn(#"Inserted DayName", "WeekNumber", each Date.WeekOfYear([Date]), Int64.Type),
+				    #"Inserted EoWeekDate" = Table.AddColumn(#"Inserted WeekNumber", "EoWDate", each Date.EndOfWeek([Date]), type date),
+				    #"Inserted BoWeekDate" = Table.AddColumn(#"Inserted EoWeekDate", "BoWDate", each Date.StartOfWeek([Date]), type date),
+				    #"Days Since Today" = Table.AddColumn(#"Inserted BoWeekDate", "DaysSinceNow", each Duration.Days(Date.From(DateTime.LocalNow())-Date.From([Date])) ),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Days Since Today",{{"DaysSinceNow", Int64.Type}}),
+				    #"Sorted Rows" = Table.Sort(#"Changed Type1",{{"Date", Order.Ascending}}),
+				    #"Added Index" = Table.AddIndexColumn(#"Sorted Rows", "Index", 0, 1, Int64.Type),
+				    #"Added Custom" = Table.AddColumn(#"Added Index", "reverse week number", each 52 - Number.RoundDown((Date.DayOfYear([EoWDate]) - 1) / 7)),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Added Custom",{{"reverse week number", Int64.Type}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type2", {"Date"}, #"DimDate (2)", {"Date"}, "DimDate (2)", JoinKind.LeftOuter),
+				    #"Expanded DimDate (2)" = Table.ExpandTableColumn(#"Merged Queries", "DimDate (2)", {"reverse week number", "Index.1"}, {"DimDate (2).reverse week number", "DimDate (2).Index.1"}),
+				    #"Filled Down" = Table.FillDown(#"Expanded DimDate (2)",{"DimDate (2).reverse week number", "DimDate (2).Index.1"}),
+				    #"Added FiscalYear" = Table.AddColumn(#"Filled Down", "FiscalYear", each if [MonthNum] >= 11 then [Year] + 1 else [Year]),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Added FiscalYear",{{"FiscalYear", Int64.Type}})
+				in
+				    #"Changed Type3"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

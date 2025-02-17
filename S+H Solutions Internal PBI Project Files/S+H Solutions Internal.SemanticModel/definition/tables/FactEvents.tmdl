@@ -1,0 +1,101 @@
+table FactEvents
+	lineageTag: c15f5ba1-3d48-46c9-947b-73e431ec30c4
+
+	measure PopulateData = IF(ISBLANK(SUM(FactEvents[Price]))=TRUE(),"N/A",SUM(FactEvents[Price]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7e82d047-795d-429f-b89b-1543853ce150
+
+		changedProperty = FormatString
+
+	column Date
+		dataType: dateTime
+		formatString: mmmm d
+		lineageTag: a3e2cccf-c8da-4679-a7c6-f14c9d6f5356
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Event
+		dataType: string
+		lineageTag: 3893994e-b289-4cd3-84ec-876543dd8477
+		summarizeBy: none
+		sourceColumn: Event
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: c5819825-ff3a-4214-bc98-2f4adceb16ce
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column Director(s)
+		dataType: string
+		lineageTag: dcfe8459-58a9-493a-a9ee-005243fe6575
+		summarizeBy: none
+		sourceColumn: Director(s)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Price
+		dataType: int64
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 524ffef1-fb11-46c1-b1cf-92a9b8d5abbe
+		summarizeBy: sum
+		sourceColumn: Price
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column Time
+		dataType: string
+		lineageTag: f6b29757-4082-4e14-9113-9c71e4c93fa9
+		summarizeBy: none
+		sourceColumn: Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column Link
+		dataType: string
+		lineageTag: b55eb472-1ef2-444f-950c-dfefab4c2270
+		summarizeBy: none
+		sourceColumn: Link
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column1
+		dataType: string
+		lineageTag: 16cd0617-3b80-4f6f-aa3b-766756f827bb
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactEvents-aa01b97f-b6d0-4cc1-8e50-ca8206d6dee2 = m
+		mode: import
+		queryGroup: Events
+		source =
+				let
+				    Source = Excel.Workbook(Web.Contents("https://vipsearchgroup.sharepoint.com/sites/VIPPowerBI/Shared%20Documents/General/VIP%20Internal%20-%20(PB-2208-003)/Solutions%20Events%20Calendar.xlsx"), null, true),
+				    Events_Sheet = Source{[Item="Events",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Events_Sheet, [PromoteAllScalars=true]),
+				    #"Capitalized Each Word" = Table.TransformColumns(#"Promoted Headers",{{"Event", Text.Proper, type text}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Capitalized Each Word",{{"Date", type date}, {"Price", Int64.Type}}),
+				    #"Removed Errors" = Table.RemoveRowsWithErrors(#"Changed Type", {"Date"})
+				in
+				    #"Removed Errors"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

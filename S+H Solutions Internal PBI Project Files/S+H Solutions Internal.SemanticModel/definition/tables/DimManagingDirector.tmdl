@@ -1,0 +1,40 @@
+table DimManagingDirector
+	lineageTag: eec7cf6a-d663-4d1f-bfd0-95353402561f
+
+	column ManagingDirector
+		dataType: string
+		lineageTag: 2b455796-30c0-4741-a3bd-1229dd39b968
+		summarizeBy: none
+		sourceColumn: ManagingDirector
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealSource
+		dataType: string
+		lineageTag: f3164dbd-3a95-448f-a38e-c87a9445508d
+		summarizeBy: none
+		sourceColumn: DealSource
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimManagingDirector-da33b091-5f1d-462d-a93d-0adb319ad8c6 = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = FactHubSpotDeal,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"DealSource"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns"),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Duplicates", each ([DealSource] <> null)),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Filtered Rows", "DealSource", "DealSource - Copy"),
+				    #"Split Column by Delimiter" = Table.SplitColumn(#"Duplicated Column", "DealSource - Copy", Splitter.SplitTextByEachDelimiter({" "}, QuoteStyle.Csv, false), {"DealSource - Copy.1", "DealSource - Copy.2"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Split Column by Delimiter",{"DealSource - Copy.2"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"DealSource - Copy.1", "ManagingDirector"}}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Renamed Columns", each ([DealSource] = "Adam Tauzel" or [DealSource] = "Jason Cuellar" or [DealSource] = "Justin Wecker" or [DealSource] = "Kim Compton" or [DealSource] = "Luke Mattorano" or [DealSource] = "Mark Brown" or [DealSource] = "Matt Edwards" or [DealSource] = "Michael Mazzanti" or [DealSource] = "Ronald Maples"))
+				in
+				    #"Filtered Rows1"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

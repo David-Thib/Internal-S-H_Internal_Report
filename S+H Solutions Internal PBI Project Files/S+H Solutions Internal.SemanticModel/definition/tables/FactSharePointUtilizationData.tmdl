@@ -1,0 +1,628 @@
+table FactSharePointUtilizationData
+	lineageTag: f5c31336-c95c-4d9d-aae6-239258f299a9
+
+	measure 'Total Utilization Hours Amount' =
+			
+			SUM(FactSharePointUtilizationData[Total Hours])
+		formatString: #,0
+		lineageTag: 09937547-b47b-436b-bdb4-644867aebf66
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Total Utilization Revenue Amount' =
+			
+			SUM(FactSharePointUtilizationData[Revenue])
+		lineageTag: 51f55e2d-a584-42d6-9a1f-7899bc8b71ec
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total Current Year Revenue Amount' =
+			
+			SUM(FactSharePointUtilizationData[CurrentYearRevenueTotal])
+		lineageTag: 39792cc5-dded-43db-b85f-0b25fe61362b
+
+		formatStringDefinition = "$#,0;($#,0)"
+
+	measure 'Total Contract Amount' =
+			
+			VAR SummaryTable =
+			ADDCOLUMNS(
+			    SUMMARIZE(
+			        FactSharePointUtilizationData, FactSharePointUtilizationData[Hubspot ID], FactSharePointUtilizationData[OwnerFullName]),
+			    "ContractAmount",
+			    VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			    RETURN
+			    CALCULATE(
+			        MAX(FactSharePointUtilizationData[ContractAmount]),
+			        FactSharePointUtilizationData[Hubspot ID] = HubSpotID
+			    )
+			)
+			RETURN
+			SUMX(SummaryTable, [ContractAmount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 091e6f03-4cae-4e6f-8c4d-2d843bbf0ed0
+
+	measure 'Total Remaining Open Contract Amount' =
+			
+			VAR SummaryTable =
+			ADDCOLUMNS(
+			    SUMMARIZE(
+			        FactSharePointUtilizationData, FactSharePointUtilizationData[Hubspot ID], FactSharePointUtilizationData[OwnerFullName]),
+			    "RemainingContractAmount",
+			    VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			    RETURN
+			    CALCULATE(
+			        MAX(FactSharePointUtilizationData[RemainingContractAmount]),
+			        FactSharePointUtilizationData[Hubspot ID] = HubSpotID
+			    )
+			)
+			RETURN
+			SUMX(SummaryTable, [RemainingContractAmount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: f0e5365b-e89d-47f7-87d6-686d15000f63
+
+	measure 'Total Utilization Revenue Amount - Last Week' =
+			
+			VAR CurrentWeekEnding = LASTDATE(DimDate[EoWDate])
+			VAR LastWeekEndingDate = CurrentWeekEnding - 7
+			RETURN
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[EoWDate] = LastWeekEndingDate
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 831879d4-a9fc-42d3-9717-3eaa7d397300
+
+	measure 'Total Utilization Revenue Amount - Weekly Average YTD' =
+			
+			VAR CurrentWeekEnding = LASTDATE(DimDate[EoWDate])
+			VAR SummaryTable =
+			CALCULATETABLE(
+			    ADDCOLUMNS(
+			        SUMMARIZE(
+			            DimDate, DimDate[EoWDate]),
+			        "WeeklyTotal", [Total Utilization Revenue Amount]),
+			    ALL(DimDate),
+			    DimDate[EoWDate] <= CurrentWeekEnding,
+			    DimDate[CurrentFiscalYearFlag] = "Current Year"
+			)
+			RETURN
+			AVERAGEX(SummaryTable, [WeeklyTotal])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 547d10ac-7b33-46b0-b44c-d7200cc2b951
+
+	measure 'Total Utilization Revenue Amount - Prior YTD' =
+			
+			VAR LatestDateSelected = SELECTEDVALUE(DimDate[EoWDate])
+			VAR PriorFiscalYear = SELECTEDVALUE(DimDate[FiscalYear]) - 1
+			VAR PriorYTDDate =
+			DATE(PriorFiscalYear, MONTH(LatestDateSelected), DAY(LatestDateSelected))
+			RETURN
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[Date] <= PriorYTDDate
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: b8863deb-95f9-4b42-8598-6f5fc20716b0
+
+	measure 'Total Utilization Revenue Amount - Current YTD' =
+			
+			VAR LatestDateSelected = LASTDATE(DimDate[Date])
+			RETURN
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[Date] <= LatestDateSelected,
+			    DimDate[CurrentFiscalYearFlag] = "Current Year"
+			)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 08191a3f-0702-4c68-b364-70d9d792b0ee
+
+	measure 'Total Utilization Revenue Amount - Current QTD' =
+			
+			VAR LatestDateSelected = LASTDATE(DimDate[Date])
+			VAR CurrentFiscalQuarter = LOOKUPVALUE(DimDate[FiscalQuarter], DimDate[Date], LatestDateSelected)
+			RETURN
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[Date] <= LatestDateSelected,
+			    DimDate[FiscalQuarter] = CurrentFiscalQuarter
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: edcfd7b2-0272-4d3b-925e-75f76bbab182
+
+	measure 'Total Utilization Revenue Amount - Current MTD' =
+			
+			VAR LatestDateSelected = LASTDATE(DimDate[Date])
+			VAR CurrentMonth = LOOKUPVALUE(DimDate[MonthYear], DimDate[Date], LatestDateSelected)
+			VAR UtilizationAmount =
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[Date] <= LatestDateSelected,
+			    DimDate[MonthYear] = CurrentMonth
+			)
+			RETURN
+			TOTALMTD( [Total Utilization Revenue Amount], DimDate[Date] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 68075631-9cba-4f04-a3e9-be0c86ef31f2
+
+	measure 'Total Utilization Revenue Amount - This Week' =
+			
+			VAR CurrentWeekEnding = LASTDATE(FactSharePointUtilizationData[WeekEndingDate_Related])
+			RETURN
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    ALL(DimDate),
+			    DimDate[EoWDate] = CurrentWeekEnding
+			)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 0c2290d0-c704-42da-8d08-aed854d7d92a
+
+	measure 'Weekly Required Amount' =
+			
+			//Based on 2025 forecast, for 2025 only, will need to update for 2026 onwards
+			VAR WeeklyRequired = 144230.77
+			VAR LatestFiscalWeekNumber = MAX(DimDate[FiscalWeekNumber])
+			RETURN
+			WeeklyRequired
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: fa63b0ea-b451-43ad-ac13-7ed411d58dc9
+
+	measure 'Total Utilization Revenue Amount (Probable 75%+)' =
+			
+			VAR ProbableAmount =
+			CALCULATE(
+			    [Total Utilization Revenue Amount],
+			    KEEPFILTERS(FactSharePointUtilizationData[DealStageName_Related] IN {"Proposing", "Contract Outstanding"}),
+			    KEEPFILTERS(FactSharePointUtilizationData[DealProbability_Related] >= 0.75)
+			)
+			RETURN
+			IF( ISBLANK(ProbableAmount), 0, ProbableAmount )
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: dff306ae-fea7-4ed8-9081-e2300c975dc3
+
+	column Date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 26c90100-a9c0-4548-830a-7f55a53e04a2
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column User
+		dataType: string
+		lineageTag: 2ac4ac6d-5d6f-4b6c-bfbc-3084b96bf9d9
+		summarizeBy: none
+		sourceColumn: User
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Main Project'
+		dataType: string
+		lineageTag: dbba7378-dfee-4859-8091-fc26b8321456
+		summarizeBy: none
+		sourceColumn: Main Project
+
+		annotation SummarizationSetBy = Automatic
+
+	column TaskType
+		dataType: string
+		lineageTag: 60011498-deb4-4040-a6b6-50ddf4881c4b
+		summarizeBy: none
+		sourceColumn: TaskType
+
+		annotation SummarizationSetBy = Automatic
+
+	column UnBillableHours
+		dataType: double
+		lineageTag: 27eb0d26-33ff-4861-9a2a-6fe67a07ac1b
+		summarizeBy: sum
+		sourceColumn: UnBillableHours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BillableHours
+		dataType: double
+		lineageTag: 9005a9a5-9833-469d-9ccb-8ee129c43338
+		summarizeBy: sum
+		sourceColumn: BillableHours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Revenue
+		dataType: double
+		lineageTag: 788cc1a2-c9bc-4921-835e-f84732181d40
+		summarizeBy: sum
+		sourceColumn: Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'MD Owner'
+		dataType: string
+		lineageTag: c1a9e9db-a91f-40e7-8bea-36d3039e3926
+		summarizeBy: none
+		sourceColumn: MD Owner
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hourly Rate'
+		dataType: double
+		lineageTag: e9397eae-a076-4f6e-881b-7256af0b9b2a
+		summarizeBy: sum
+		sourceColumn: Hourly Rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total Hours'
+		dataType: double
+		lineageTag: 02cb385e-086d-4cd4-be77-c413bcbdf9f4
+		summarizeBy: sum
+		sourceColumn: Total Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column HoursType
+		dataType: string
+		lineageTag: bd461a17-bb86-4188-a5c8-92580334112d
+		summarizeBy: none
+		sourceColumn: HoursType
+
+		annotation SummarizationSetBy = Automatic
+
+	column Internal/External =
+			
+			IF(
+			    FactSharePointUtilizationData[HoursType] = "Unbillable", "Internal", "External"
+			)
+		lineageTag: e4ef0488-15f0-4ce0-8b17-94246b5a23d2
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Bucket' =
+			
+			SWITCH(TRUE(),
+			    FactSharePointUtilizationData[HoursType] = "Billable", "Billable",
+			    FactSharePointUtilizationData[HoursType] IN {"PTO", "Holiday"}, "PTO",
+			    "Admin/Other")
+		lineageTag: 7ff71f77-c506-4671-80e4-cfaac45c4d59
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerFullName
+		dataType: string
+		lineageTag: c4e21476-fa88-4efa-b871-d5aab8f5bf39
+		summarizeBy: none
+		sourceColumn: OwnerFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerPosition
+		dataType: string
+		lineageTag: 1e158f1f-13d1-4d40-a77f-4f41ea1e4cbb
+		summarizeBy: none
+		sourceColumn: OwnerPosition
+		sortByColumn: OwnerPositionSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerPositionSort
+		dataType: int64
+		formatString: 0
+		lineageTag: 934ec0fe-5424-4c35-b1a5-39b7f65360a8
+		summarizeBy: sum
+		sourceColumn: OwnerPositionSort
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentYearRevenueTotal =
+			
+			VAR MainProjectName = FactSharePointUtilizationData[Main Project]
+			VAR OwnerFullName = FactSharePointUtilizationData[OwnerFullName]
+			RETURN
+			CALCULATE(
+			    SUM(FactSharePointUtilizationData[Revenue]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Main Project] = MainProjectName,
+			    FactSharePointUtilizationData[OwnerFullName] = OwnerFullName,
+			    FactSharePointUtilizationData[FiscalYear_Related] = "Current Year"
+			)
+		lineageTag: ee13bcea-0f77-429b-b3fb-27c232d9c554
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DealStageName_Related =
+			
+			VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			RETURN
+			LOOKUPVALUE(FactHubSpotDeal[DealStageBucket], FactHubSpotDeal[DealId], FactSharePointUtilizationData[Hubspot ID])
+		lineageTag: 22c6787e-9d91-47b3-9471-e688d0fcf7b7
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContractAmount =
+			
+			LOOKUPVALUE(FactHubSpotDeal[Amount], FactHubSpotDeal[DealId], FactSharePointUtilizationData[Hubspot ID])
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: ea6c640a-e12e-4388-a923-2ffebb5c2844
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear =
+			
+			RELATED(DimDate[FiscalYear])
+		formatString: 0
+		lineageTag: 959263b3-e0ed-4ad1-8a7b-47c098052cf5
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear_Related =
+			
+			RELATED(DimDate[CurrentFiscalYearFlag])
+		lineageTag: 0ba8f519-3115-4b96-9614-b17f20bfc58e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column RemainingContractAmount =
+			
+			VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			VAR TotalRevenue =
+			CALCULATE(
+			    SUM(FactSharePointUtilizationData[Revenue]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Hubspot ID] = HubSpotID
+			)
+			RETURN
+			IF(
+			    IF(
+			        FactSharePointUtilizationData[DealStageName_Related] = "Closed Won",
+			        FactSharePointUtilizationData[ContractAmount], 0) - TotalRevenue < 0, 0,
+			    IF(
+			        FactSharePointUtilizationData[DealStageName_Related] = "Closed Won",
+			        FactSharePointUtilizationData[ContractAmount], 0) - TotalRevenue
+			)
+		lineageTag: 20f140ed-057c-41f9-a1ec-7b6f4e3e3765
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WeekEndingDate_Related =
+			
+			RELATED(DimDate[EoWDate])
+		formatString: General Date
+		lineageTag: 4a0adea3-7624-406f-b0ed-f64f7ee624a0
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 6c316b0b-4289-422b-b531-c3ac38603fdc
+			defaultHierarchy: LocalDateTable_2e920df8-10ef-46a0-89ee-edc9c05d5f8a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealProbability_Related =
+			
+			VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			RETURN
+			LOOKUPVALUE(FactHubSpotDeal[StageProbabilty], FactHubSpotDeal[DealId], HubSpotID)
+		lineageTag: e8d939f3-3ea2-4661-a256-d568ae306760
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DealSourcedBy
+		dataType: string
+		lineageTag: f42b170f-8c53-4490-868e-f08756962048
+		summarizeBy: none
+		sourceColumn: DealSourcedBy
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPosition_Related =
+			
+			LOOKUPVALUE(FactSharePointResourceData[UserPosition], FactSharePointResourceData[FullName], FactSharePointUtilizationData[User])
+		lineageTag: ea13e0f6-a9f9-47fb-87fb-6a12067e43a7
+		summarizeBy: none
+		sortByColumn: UserPositionSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPositionSort =
+			
+			VAR UserPosition =
+			LOOKUPVALUE(FactSharePointResourceData[UserPosition], FactSharePointResourceData[FullName], FactSharePointUtilizationData[User])
+			RETURN
+			SWITCH(UserPosition,
+			    "Managing Partner", 1,
+			    "Partner", 2,
+			    "Managing Director", 3,
+			    "Director", 4,
+			    "Operations", 5,
+			    "Consultant", 6,
+			    "Contractor", 7,
+			    "Part-Time", 8
+			)
+		formatString: 0
+		lineageTag: 15aad329-34a4-4ab0-89b8-1b996f5a1f45
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesVsGoalsSourcePosition =
+			
+			VAR DealSourcedBy = FactSharePointUtilizationData[DealSourcedBy]
+			RETURN
+			SWITCH(TRUE(),
+			    DealSourcedBy IN {"Adam Tauzel", "Matt Edwards", "Jeremy Clyde", "Mark Brown"}, "Partner",
+			    DealSourcedBy = "Mindy McRae", "Bus Development Manager",
+			    DealSourcedBy IN {"Jess Padek", "Chris Steele", "Luke Mattorano", "Lannie Morgan"}, "Other",
+			    DealSourcedBy IN {"Michael Mazzanti", "Jason Cuellar", "Ron Maples"}, "Managing Director")
+		lineageTag: f9484414-3118-4034-87d6-ed852344b868
+		summarizeBy: none
+		sortByColumn: SalesVsGoalsSourcePositionSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesVsGoalsSourcePositionSort =
+			
+			VAR DealSourcedBy = FactSharePointUtilizationData[DealSourcedBy]
+			RETURN
+			SWITCH(TRUE(),
+			    DealSourcedBy IN {"Adam Tauzel", "Matt Edwards", "Jeremy Clyde", "Mark Brown"}, 1,
+			    DealSourcedBy = "Mindy McRae", 2,
+			    DealSourcedBy IN {"Jess Padek", "Chris Steele", "Luke Mattorano", "Lannie Morgan"}, 4,
+			    DealSourcedBy IN {"Michael Mazzanti", "Jason Cuellar", "Ron Maples"}, 3)
+		formatString: 0
+		lineageTag: bf9bb807-d314-44ee-a24f-c380b047aac8
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjectName_HubSpot_Related =
+			
+			VAR HubSpotID = FactSharePointUtilizationData[Hubspot ID]
+			RETURN
+			LOOKUPVALUE(FactHubSpotDeal[DealName], FactHubSpotDeal[DealId], HubSpotID)
+		lineageTag: 7902a532-cf4d-4821-9ed9-24e5519618e1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName_Related =
+			
+			LOOKUPVALUE(FactHubSpotDeal[CompanyName], FactHubSpotDeal[DealId], FactSharePointUtilizationData[Hubspot ID])
+		lineageTag: ac0e1524-8026-421a-9c1a-5e76ad372477
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hubspot ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b549852-25e2-4cb4-bd7f-bbc95cb6616b
+		summarizeBy: count
+		sourceColumn: Hubspot ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column HubSpotIDSourcedByID
+		dataType: string
+		lineageTag: f0657445-947a-495c-ab8b-41aedc02760b
+		summarizeBy: none
+		sourceColumn: HubSpotIDSourcedByID
+
+		annotation SummarizationSetBy = Automatic
+
+	column HubSpotIDOwnerFullNameID
+		dataType: string
+		lineageTag: d551f1ad-1f21-4037-9eb7-01c4a747ad51
+		summarizeBy: none
+		sourceColumn: HubSpotIDOwnerFullNameID
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealID_LookUpTest =
+			
+			LOOKUPVALUE(FactHubSpotDeal[DealId], FactHubSpotDeal[DealId], FactSharePointUtilizationData[Hubspot ID])
+		formatString: 0
+		lineageTag: d7fa52bf-75c6-4953-a075-a7542183527e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactSharePointUtilizationData = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+				    #"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="Resource Utilization Tracker Working Master - 2025.xlsb",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+				    #"Historical Data" = #"Imported Excel Workbook"{[Name="Historical Data"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(#"Historical Data",1),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Promoted Headers",{{"Hubspot", "Hubspot ID"}}),
+				    #"Replaced Value10" = Table.ReplaceValue(#"Renamed Columns2","0","",Replacer.ReplaceValue,{"Hubspot ID"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Replaced Value10",{"Column13", "Column14", "Column15"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Billable/Non-billable#(lf)/PTO/Holiday", "HoursType"}}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Renamed Columns",",","",Replacer.ReplaceText,{"Hubspot ID"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Replaced Value4","XXXXXXX","",Replacer.ReplaceText,{"HoursType"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","-","",Replacer.ReplaceText,{"Hourly Rate"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","-","",Replacer.ReplaceText,{"Total Hours"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Replaced Value2", each ([User] <> "" and [User] <> "0")),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Filtered Rows","-","",Replacer.ReplaceText,{"UnBillable", "Billable", "Revenue"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value3",{{"UnBillable", type number}, {"Billable", type number}, {"Revenue", type number}, {"Hourly Rate", type number}, {"Total Hours", type number}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type",{{"Task", "TaskType"}, {"UnBillable", "UnBillableHours"}, {"Billable", "BillableHours"}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns1",{{"Date", type date}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type1", "OwnerFullName", each if [MD Owner] = "Brown" then "Mark Brown" else if [MD Owner] = "Clyde" then "Jeremy Clyde" else if [MD Owner] = "Cuellar" then "Jason Cuellar" else if [MD Owner] = "Mazzanti" then "Michael Mazzanti" else if [MD Owner] = "Tauzel" then "Adam Tauzel" else if [MD Owner] = "S+H" then "S+H" else if [MD Owner] = "Internal" then "Internal" else if [MD Owner] = "Edwards" then "Matt Edwards" else if [MD Owner] = "Mattorano" then "Luke Mattorano" else if [MD Owner] = "Maples" then "Ron Maples" else null),
+				    #"Added OwnerPosition" = Table.AddColumn(#"Added Conditional Column", "OwnerPosition", each if List.Contains({"Tauzel", "Clyde", "Brown", "Edwards"}, [MD Owner]) then "Partner" else if List.Contains({"Mazzanti", "Cuellar", "Maples", "Mattorano"}, [MD Owner]) then "Managing Director" else if List.Contains({"S+H", "Internal"}, [MD Owner]) then "S+H/Internal" else null),
+				    #"Added OwnerPositionSort" = Table.AddColumn(#"Added OwnerPosition", "OwnerPositionSort", each if [OwnerPosition] = "Partner" then 1 else if [OwnerPosition] = "Managing Director" then 2 else if [OwnerPosition] = "S+H/Internal" then 3 else null),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Added OwnerPositionSort",{{"OwnerPosition", type text}, {"OwnerPositionSort", Int64.Type}}),
+				    #"Trimmed Text" = Table.TransformColumns(#"Changed Type2",{{"Hubspot ID", Text.Trim, type text}}),
+				    #"Replaced Value5" = Table.ReplaceValue(#"Trimmed Text","-","",Replacer.ReplaceText,{"Hubspot ID"}),
+				    #"Changed Type4" = Table.TransformColumnTypes(#"Replaced Value5",{{"Hubspot ID", Int64.Type}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type4", {"Hubspot ID"}, FactHubSpotDeal, {"DealId"}, "FactHubSpotDeal", JoinKind.LeftOuter),
+				    #"Expanded FactHubSpotDeal" = Table.ExpandTableColumn(#"Merged Queries", "FactHubSpotDeal", {"DealSource"}, {"DealSource"}),
+				    #"Added DealSourcedBy" = Table.AddColumn(#"Expanded FactHubSpotDeal", "DealSourcedBy", each if [DealSource] = "adam_tauzel" then "Adam Tauzel"
+				else if [DealSource] = "chris_steele" then "Chris Steele" else if [DealSource] = "jason_cuellar" then "Jason Cuellar"
+				else if [DealSource] = "jeremy_clyde" then "Jeremy Clyde" else if [DealSource] = "matthew_edwards" then "Matthew Edwards"
+				else if [DealSource] = "michael_mazzanti" then "Michael Mazzanti"
+				else if [DealSource] = "mindy_mcrae" then "Mindy McRae" else if [DealSource] = "mark_brown" then "Mark Brown"
+				else if [MD Owner] = "S+H" then "Luke Mattorano" else if [DealSource] = "luke_mattorano" then "Luke Mattorano" else if [DealSource] = "lannie_morgan" then "Lannie Morgan" else[DealSource]),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added DealSourcedBy",{"DealSource"}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Removed Columns1", each ([DealSourcedBy] <> "adam_tauzel, mindy_mcrae" and [DealSourcedBy] <> "adam_tauzel;mindy_mcrae")),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Filtered Rows1",{{"DealSourcedBy", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type3", FactSharePointUtilizationData_SplitWithMindy}),
+				    #"Changed Type5" = Table.TransformColumnTypes(#"Appended Query",{{"Hubspot ID", Int64.Type}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Changed Type5"),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Removed Duplicates",{{"DealSourcedBy", Text.Trim, type text}}),
+				    #"Replaced Value9" = Table.ReplaceValue(#"Trimmed Text1","Smith + Howard","S+H",Replacer.ReplaceText,{"DealSourcedBy"}),
+				    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value9","mindy_mcrae","Mindy McRae",Replacer.ReplaceValue,{"DealSourcedBy"}),
+				    #"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","Ron Maples","Ronald Maples",Replacer.ReplaceValue,{"OwnerFullName"}),
+				    #"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","Matt Edwards","Matthew Edwards",Replacer.ReplaceValue,{"OwnerFullName"}),
+				    #"Sorted Rows" = Table.Sort(#"Replaced Value8",{{"Date", Order.Descending}}),
+				    #"Added DealID/SourcedBy" = Table.AddColumn(#"Sorted Rows", "HubSpotIDSourcedByID", each Text.From([Hubspot ID]) & "-" & Text.Replace([DealSourcedBy], " ", "_")),
+				    #"Added DealID/OwnerFullName" = Table.AddColumn(#"Added DealID/SourcedBy", "HubSpotIDOwnerFullNameID", each Text.From([Hubspot ID]) & "-" & Text.Replace([OwnerFullName], " ", "_")),
+				    #"Changed Type6" = Table.TransformColumnTypes(#"Added DealID/OwnerFullName",{{"HubSpotIDOwnerFullNameID", type text}, {"HubSpotIDSourcedByID", type text}})
+				in
+				    #"Changed Type6"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

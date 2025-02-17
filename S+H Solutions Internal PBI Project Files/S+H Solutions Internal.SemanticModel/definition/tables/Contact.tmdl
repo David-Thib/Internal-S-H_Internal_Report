@@ -1,0 +1,23 @@
+table Contact
+	lineageTag: d1a4cc92-7111-4e9e-b87d-d2f4cba609f4
+
+	column Column1
+		dataType: string
+		lineageTag: a0234b79-189d-427d-9700-fa4e86b62577
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Contact-213ec782-55a4-4cf1-b6ae-be72a25b59e9 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W0tdPyiwuLSjILypxKE9NLEotyyzQS87PVYqNBQA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

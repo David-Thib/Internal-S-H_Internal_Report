@@ -1,0 +1,297 @@
+relationship e47bb5fb-24d6-47be-ac27-04b23ab1584a
+	fromColumn: FactEvents.Date
+	toColumn: DimDate.Date
+
+relationship 3c0d79e3-2b03-4bc4-baec-a408eb718c2e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.CreateDate
+	toColumn: LocalDateTable_35c5cc25-9cd6-4dc8-9022-22698899119f.Date
+
+relationship 75bc4892-5531-486e-b75f-717c99f88d88
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.LastModifiedDate
+	toColumn: LocalDateTable_99ac11b3-49ad-452f-832b-d0a6adfc6266.Date
+
+relationship 3c4f6c67-6700-456f-b829-fe17be477759
+	joinOnDateBehavior: datePartOnly
+	fromColumn: SyncHistory.UpdateDate
+	toColumn: LocalDateTable_98d3df19-00a5-4488-a3f7-4a70868b8e41.Date
+
+relationship 6fd82a04-fa1e-4131-9724-a2aac6cc4526
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactResource.Modified
+	toColumn: LocalDateTable_ebf4604b-ce62-45f1-bb4d-5ad02ad65f81.Date
+
+relationship 3fc4f4d6-c92f-4223-8368-7bf3b9f75798
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactResource.Created
+	toColumn: LocalDateTable_c08cb7b0-7565-4958-a9ca-25f3dbbdfe82.Date
+
+relationship 2bcb5a48-9b35-4639-9786-6e547dc27c97
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactResource.'Start Date'
+	toColumn: LocalDateTable_9f9b27c4-d23a-4e6c-a3bb-14e006752415.Date
+
+relationship f3057ea3-1c52-4c89-a484-5b5dfec874bd
+	crossFilteringBehavior: bothDirections
+	fromColumn: DimIndExp.'QB ID'
+	toColumn: FactResource.'QB ID'
+
+relationship 4e5b44d8-e541-447c-a835-3455b2f4a9a0
+	crossFilteringBehavior: bothDirections
+	fromColumn: DimLocation.'QB ID'
+	toColumn: FactResource.'QB ID'
+
+relationship 078ca273-f878-4568-934b-bc94ab0dca54
+	crossFilteringBehavior: bothDirections
+	fromColumn: DimProSkills.'QB ID'
+	toColumn: FactResource.'QB ID'
+
+relationship f3347d91-8b5c-4e83-a7d0-90da6bcd5884
+	crossFilteringBehavior: bothDirections
+	fromColumn: DimServiceLine.'QB ID'
+	toColumn: FactResource.'QB ID'
+
+relationship 5064ef91-12d9-4979-bfd5-22b6e6f75816
+	crossFilteringBehavior: bothDirections
+	fromColumn: DimSystems.'QB ID'
+	toColumn: FactResource.'QB ID'
+
+relationship d9970d83-5084-4d08-98be-f947d4e9324e
+	fromColumn: FactHubSpotDeal.OwnerID
+	toColumn: FactResource.'QB ID'
+
+relationship 3b42a7c0-1377-4f5a-9f73-bae0729c1c6d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactResource.'Available Date'
+	toColumn: LocalDateTable_08fe677f-7d98-40c3-9771-3d1ad9a5b1de.Date
+
+relationship 2eda93e6-17ea-4307-9fe0-7d26bd1c9a9d
+	fromColumn: FactHubSpotDeal.CloseDate
+	toColumn: DimDate.Date
+
+relationship b139abd9-3327-415c-be84-abb7802d1231
+	fromColumn: SalesBudgetBuckets.Level
+	toColumn: SalesHeaders.Level
+
+relationship d27a8fc8-5499-4265-8096-fac34e0a2b2a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: InvoiceBudget.Year
+	toColumn: LocalDateTable_4edada56-4d5a-491b-9f31-5bb3937869fd.Date
+
+relationship 36fc39ab-5e3d-47f5-a8d9-0def9173f705
+	isActive: false
+	fromColumn: InvoiceBudget.FirstName
+	toColumn: DimManagingDirector.ManagingDirector
+
+relationship 457bb45a-07a7-4017-af64-1892fb9f56cb
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.hs_latest_meeting_activity
+	toColumn: LocalDateTable_2b5819c0-6339-4a3c-9877-dd63b0ab5a6f.Date
+
+relationship ff905470-a0ea-4727-9e1c-70129ae5b3c6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.notes_last_contacted
+	toColumn: LocalDateTable_b05fd040-ce8e-4492-b403-6cad4eb94f2c.Date
+
+relationship f4b3ab7c-641d-4326-9309-f7f26fbc516b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.notes_last_updated
+	toColumn: LocalDateTable_974718ad-f9ca-494c-bcc3-2ad35096b550.Date
+
+relationship 01be9257-b25f-4890-a8f0-aca20d2c7a1f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.notes_next_activity_date
+	toColumn: LocalDateTable_a1babe5c-afa9-4275-82b8-492cff02cc3b.Date
+
+relationship 395b648c-a95a-4fad-abe4-61854f7b4f66
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.hs_closed_won_date
+	toColumn: LocalDateTable_4313231a-ad4b-4207-9035-711408c06485.Date
+
+relationship f3d26e51-1bb3-46d9-8a46-f6136a5d1ff4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_createdate
+	toColumn: LocalDateTable_645c31ee-a002-4ef1-8523-c42586e00136.Date
+
+relationship 9a14835c-3571-4d19-88b7-71cc1d30fe15
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_due_date
+	toColumn: LocalDateTable_c97c1812-a3f3-4926-a67a-5370df957039.Date
+
+relationship d3c6dc21-acec-44fa-9648-3e0c2b5ca046
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_external_createdate
+	toColumn: LocalDateTable_271857db-f30c-4b2e-9f93-10b0081fe717.Date
+
+relationship fc148f04-fd39-4d6e-8831-4aafacc66d34
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_invoice_date
+	toColumn: LocalDateTable_95c5a114-2135-4634-a8af-8e4a337bc2cb.Date
+
+relationship 5eaedf49-f95d-4180-a286-8cfaf5cce079
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_last_edit_date
+	toColumn: LocalDateTable_0ea7272b-d08f-4ea3-84ce-5cbee7519b7b.Date
+
+relationship ec4583cf-9f11-4568-b299-2aed0eb96bd5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_last_reminder_sent_date
+	toColumn: LocalDateTable_b46a4bf8-c8f9-491a-a244-5e3fa2b625a3.Date
+
+relationship 62ecfaed-76b4-49c6-bbc6-e65c3c60a113
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_last_sent_date
+	toColumn: LocalDateTable_ce04159b-4bdd-4780-a9c1-09c7cc6cc34f.Date
+
+relationship 57777a6c-c055-49f1-954c-6310e29d51bc
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_lastmodifieddate
+	toColumn: LocalDateTable_7578b971-af07-498e-9469-04ffd4328fad.Date
+
+relationship a5435c04-4b12-4ff2-b687-13fd638d6e5e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_payment_date
+	toColumn: LocalDateTable_c026cf21-a55b-4f48-b584-a3e45061ac77.Date
+
+relationship 959ac070-7d32-4e70-a654-28f7f31f9e60
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hs_received_by_recipient_date
+	toColumn: LocalDateTable_f59fa7c4-5842-4ea9-bf49-2b2fb3faa1a9.Date
+
+relationship b1e1f78e-7fdd-48c8-a119-6954c8e53848
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotInvoices.hubspot_owner_assigneddate
+	toColumn: LocalDateTable_5709842d-a61f-4709-b083-98bdd271ba54.Date
+
+relationship 7582c9bf-99f6-49b9-81f8-fd5c75fb4f80
+	joinOnDateBehavior: datePartOnly
+	fromColumn: SyncHistory.SyncTime_UTC
+	toColumn: LocalDateTable_6ceaf3fc-ae65-49fa-9d80-8b816fe8997f.Date
+
+relationship 3a25f433-7bb3-4f4d-8d79-aec52119484b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.createdate
+	toColumn: LocalDateTable_e4931850-0b2c-4df5-baec-0355679c93b2.Date
+
+relationship cc86192b-3571-43d5-b8ab-3c6b5c2c37c3
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.lastmodifieddate
+	toColumn: LocalDateTable_f9a32b53-4d04-48f4-b17a-3862f25dcbf7.Date
+
+relationship d41db9d4-63bc-494b-9bbc-96a98eedceb4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.owner_assigneddate
+	toColumn: LocalDateTable_76cb679c-b7a6-4046-b904-35353dfcd8c7.Date
+
+relationship 7309d988-07e6-4cee-bd25-f9143c3bd7dc
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.meeting_start_time
+	toColumn: LocalDateTable_35eecea4-d14f-406e-ba83-6292808eae47.Date
+
+relationship 68e4b88a-5c72-414f-9028-7c388127f8a8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.task_completion_date
+	toColumn: LocalDateTable_232fedc5-e987-4913-a278-32c3a056c83b.Date
+
+relationship 429e84b6-49d7-49dc-98e9-04387b232f00
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.task_last_contact_outreach
+	toColumn: LocalDateTable_a39225ad-f30a-4910-91d4-92e1d9645ac7.Date
+
+relationship ec0123e3-d1d7-4442-9ca9-7712fe4289a5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.task_last_sales_activity_timestamp
+	toColumn: LocalDateTable_9bc849e0-1b3a-4e3b-89db-7da976fd6543.Date
+
+relationship 4d42f609-ff6f-4ec0-8f30-f1822d561a77
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.communication_conversation_associations_synced_at
+	toColumn: LocalDateTable_1ca35887-4933-482c-8eb7-888138f9f56e.Date
+
+relationship 3edd0289-95f1-47a9-aee1-eadd92959975
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotEngagements.communication_conversations_first_message_at
+	toColumn: LocalDateTable_3e63da61-46c7-4537-b559-9de15f92ae50.Date
+
+relationship AutoDetected_84681dcb-6db3-4f75-8ef4-7788bc8ae12f
+	fromColumn: FactHubSpotDeal.DealSource
+	toColumn: DimManagingDirector.DealSource
+
+relationship 4df550ad-da97-237e-a945-c6e26f1188f4
+	fromColumn: FactSharePointUtilizationData.Date
+	toColumn: DimDate.Date
+
+relationship 5b951d29-b9a4-4b3e-a232-0a945cbf9a45
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactSharePointARDateLookup.ARLookupDate
+	toColumn: LocalDateTable_b89d7df3-4b71-4a8b-ae20-1733fab9105f.Date
+
+relationship AutoDetected_8d2829a9-1ad1-4eff-84c7-97b8846aa5f6
+	fromColumn: FactSharePointARData.AgingCategoryID
+	toColumn: DimAgingCategory.AgingCategoryID
+
+relationship ea4ccee7-9c47-43ca-b051-a66324f499d7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotOwner.hs_createdate
+	toColumn: LocalDateTable_25f4f0e4-b2b4-4cdf-bd28-495f6f2bdaac.Date
+
+relationship c19c2246-890a-40bc-b8bd-cc1462042f29
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactHubSpotDeal.TrueDate
+	toColumn: LocalDateTable_96f77619-e392-419c-9f3a-86920e3bbdfc.Date
+
+relationship 0aab7df7-b653-8d98-2fb7-f360d46605b0
+	toCardinality: many
+	fromColumn: FactGoals.GoalYear
+	toColumn: DimDate.FiscalYear
+
+relationship 6c316b0b-4289-422b-b531-c3ac38603fdc
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactSharePointUtilizationData.WeekEndingDate_Related
+	toColumn: LocalDateTable_2e920df8-10ef-46a0-89ee-edc9c05d5f8a.Date
+
+relationship e3b9b59e-4e09-43ab-a258-d617ef9d111b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactSharePointSummarizedForecastTable.MonthEndingDate
+	toColumn: LocalDateTable_7919f2eb-4e40-42e7-8073-aac80aed4296.Date
+
+relationship 7fc98ef8-e7de-49d4-b182-9d325106bf27
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactSharePointWeeklyForecastData.MonthEndingDate
+	toColumn: LocalDateTable_8af0783f-eaa6-4809-aff5-62b1923f7a4e.Date
+
+relationship 6c93d391-24b4-c20d-2a6f-ffa03aaedb03
+	toCardinality: many
+	fromColumn: FactSharePointSummarizedForecastTable.EoWDate
+	toColumn: DimDate.EoWDate
+
+relationship 4e18da8b-aaf2-f0e7-43a7-5646ffc4db94
+	isActive: false
+	toCardinality: many
+	fromColumn: FactGoals.OwnerFullName
+	toColumn: FactHubSpotDeal.DealSource_Cleaned
+
+relationship ad77f0ac-ce51-7cab-da2d-deb463b80750
+	isActive: false
+	toCardinality: many
+	fromColumn: FactGoals.OwnerFullName
+	toColumn: FactHubSpotDeal.OwnerFullName
+
+relationship f525da93-d6d6-f108-25bd-310d304db0e8
+	isActive: false
+	toCardinality: many
+	fromColumn: FactSharePointUtilizationData.HubSpotIDSourcedByID
+	toColumn: FactHubSpotDeal.HubSpotIDSourcedByID
+
+relationship bf4c5e22-0f4d-b263-cb8d-4da544871150
+	isActive: false
+	toCardinality: many
+	fromColumn: FactSharePointUtilizationData.HubSpotIDOwnerFullNameID
+	toColumn: FactHubSpotDeal.HubSpotIDOwnerFullNameID
+
+relationship dfc92ed6-e818-4acb-800c-2719f53bce3c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FactNeededCaseStudies.'Create Date'
+	toColumn: LocalDateTable_e26b2f46-7f7e-4038-b1f5-02d7dc9f0729.Date
+

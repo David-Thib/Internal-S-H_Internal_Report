@@ -1,0 +1,30 @@
+table FactSharePointCurrentYearRevenue
+	lineageTag: f9b50149-2027-4066-92af-f1a65add00e5
+
+	column 'Hubspot ID'
+		formatString: 0
+		lineageTag: f7d861a5-0eb2-4ee6-bb54-07344c94c29a
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: FactSharePointUtilizationData[Hubspot ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentYearRevenueTotal
+		lineageTag: 82199b34-54ad-4fe7-9d29-0a414b92152c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: FactSharePointUtilizationData[CurrentYearRevenueTotal]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FactSharePointCurrentYearRevenue = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(FactSharePointUtilizationData, FactSharePointUtilizationData[Hubspot ID], FactSharePointUtilizationData[CurrentYearRevenueTotal])
+
+	annotation PBI_Id = 432a875f05d84b1c8ece19b3a2413e98
+

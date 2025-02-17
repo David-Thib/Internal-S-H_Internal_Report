@@ -1,0 +1,170 @@
+table FactHubSpotCompany
+	lineageTag: f0d09d84-dc08-44b8-8d9f-0050245fcf18
+
+	column CompanyId
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e5948cac-5ff9-4e6f-950f-40f6a053a424
+		summarizeBy: count
+		sourceColumn: CompanyId
+
+		annotation SummarizationSetBy = Automatic
+
+	column address
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 7f4f5ea9-75f1-4078-820d-61785e2be85a
+		summarizeBy: none
+		sourceColumn: address
+
+		annotation SummarizationSetBy = Automatic
+
+	column annualrevenue
+		dataType: double
+		sourceProviderType: decimal(25, 5)
+		lineageTag: 63865b56-1954-4489-8ff2-b817f1295e39
+		summarizeBy: sum
+		sourceColumn: annualrevenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column city
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 250681cc-6054-41df-ae6a-38cb4cfece98
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 1a136274-8148-462d-9935-edc724b6ad58
+		summarizeBy: none
+		sourceColumn: CompanyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 86d3e1bb-f370-4655-a7b0-658f4625a03f
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column description
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 08c42a60-2a04-4c20-b730-dce02c35f0b3
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = Automatic
+
+	column domain
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 163cc654-c9d6-4bc2-90e6-83c524aa032f
+		summarizeBy: none
+		sourceColumn: domain
+
+		annotation SummarizationSetBy = Automatic
+
+	column founded_year
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: b530e858-4441-4472-b53f-cec785b96cc7
+		summarizeBy: none
+		sourceColumn: founded_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_parent_company_id
+		dataType: double
+		sourceProviderType: decimal(25, 5)
+		lineageTag: 11e7d3b5-4ea5-4293-a199-3535813d6699
+		summarizeBy: sum
+		sourceColumn: hs_parent_company_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column phone
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 6efb45e5-7a82-4c83-94c8-3c9cda4b2b39
+		summarizeBy: none
+		sourceColumn: phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: b6d713c4-5e95-4d54-b965-a4d9c18183b5
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_revenue
+		dataType: double
+		sourceProviderType: decimal(25, 5)
+		lineageTag: 892e3447-f347-428f-ad5f-0f59ea05b4ce
+		summarizeBy: sum
+		sourceColumn: total_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column type
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 675e1d86-3e47-49c7-b792-825180122293
+		summarizeBy: none
+		sourceColumn: type
+
+		annotation SummarizationSetBy = Automatic
+
+	column website
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: 76ba9e27-d441-447f-94aa-031916b84632
+		summarizeBy: none
+		sourceColumn: website
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip
+		dataType: string
+		sourceProviderType: nvarchar(max)
+		lineageTag: dbe788ab-733c-4ea4-ae5c-0bfc4e9b579a
+		summarizeBy: none
+		sourceColumn: zip
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHubSpotCompany = m
+		mode: directQuery
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+				    dbo_Company = Source{[Schema="dbo",Item="Company"]}[Data],
+				    #"Removed Other Columns" = Table.SelectColumns(dbo_Company,{"CompanyId", "address", "annualrevenue", "city", "CompanyName", "country", "description", "domain", "founded_year", "hs_parent_company_id", "phone", "state", "total_revenue", "type", "website", "zip"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

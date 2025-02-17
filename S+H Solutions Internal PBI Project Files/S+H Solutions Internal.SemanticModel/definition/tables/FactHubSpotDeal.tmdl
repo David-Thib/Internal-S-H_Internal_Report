@@ -1,0 +1,1300 @@
+table FactHubSpotDeal
+	lineageTag: 8fc46b60-8ae2-4ad8-b38f-e69b029e0c23
+
+	measure TotalDeals60Day = ```
+			
+			    VAR Last_Date = TODAY()
+			    Return
+			    CALCULATE(DISTINCTCOUNT('FactHubSpotDeal'[DealId]),
+			    FILTER(ALL(DimDate),
+			        DimDate[Date] > Last_Date - 60 &&
+			        DimDate[Date] < Last_Date ))
+			```
+		formatString: 0
+		lineageTag: 1cf2b67a-afbe-4027-8555-6f8cfa19ed6e
+
+	measure 'Total Deal Amount' =
+			
+			IF(
+			    ISBLANK( SUM('FactHubSpotDeal'[Amount]) ),
+			    0,
+			    SUM('FactHubSpotDeal'[Amount])
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 218b57f9-7467-444f-a35a-8caa069b6dca
+
+		changedProperty = FormatString
+
+	measure TotalDeals7Day = ```
+			
+			    VAR Last_Date = TODAY()
+			    Return
+			    CALCULATE(DISTINCTCOUNT('FactHubSpotDeal'[DealId]),
+			    FILTER(ALL(DimDate),
+			        DimDate[Date] > Last_Date - 7 &&
+			        DimDate[Date] < Last_Date ))
+			```
+		formatString: 0
+		lineageTag: 3104e01b-f816-46c0-890b-c8c4abae1edb
+
+	measure 'Total Deal Distinct Count' =
+			
+			DISTINCTCOUNT('FactHubSpotDeal'[DealId])
+		formatString: 0
+		lineageTag: b1a00cb3-70fb-4e73-a084-ecff6e21d070
+
+	measure 'Total Deal Count (Card Visual)' =
+			
+			DISTINCTCOUNT('FactHubSpotDeal'[DealName]) + 0 & " Deals"
+		lineageTag: a0119913-19bf-4ee4-8a65-c5a671a90d85
+
+	measure SumofAmountMarker = SUM('FactHubSpotDeal'[Amount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 6fdd6c40-6c05-4095-9d65-ae52b009dc5f
+
+		changedProperty = FormatString
+
+	measure 'Amount Sum and Deal Card Combined' =
+			
+			VAR DealAmount =
+			IF(ISBLANK([Total Deal Contract Amount (All Stages)]), 0, [Total Deal Contract Amount (All Stages)])
+			RETURN
+			FORMAT(DealAmount, "$#,##0") & UNICHAR(10) & "(" & [Total Deal Count (Card Visual)] & ")"
+		lineageTag: 67795e84-7aa2-451a-94cf-b1b3095b920d
+
+	measure 'Total Deal Contract Amount' =
+			
+			VAR SummaryTable =
+			CALCULATETABLE(
+			    SUMMARIZE(
+			        FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[Amount]),
+			    KEEPFILTERS(FactHubSpotDeal[DealStageName] IN {"Closed Won", "Completed Billing"})
+			)
+			RETURN
+			SUMX(SummaryTable, FactHubSpotDeal[Amount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 4ebc49e0-ed26-4071-a5d1-fe2ac26244d8
+
+		changedProperty = FormatString
+
+	measure Invoiced = SUM('FactHubSpotDeal'[TotalQBInvoicedAmount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 143599f8-d6c4-4429-99cd-db95c984237b
+
+		changedProperty = FormatString
+
+	measure 'Probables Amount' = CALCULATE(SUM('FactHubSpotDeal'[Amount]), 'FactHubSpotDeal'[DealStageBucket] = "Pipelined", 'FactHubSpotDeal'[StageProbabilty] >= .5)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 88f3cda8-563d-4c3a-a752-aab57c33a904
+
+		changedProperty = FormatString
+
+	measure 'SumofBudget stretch' =
+			IF(
+			    HASONEFILTER(SalesBudgetBuckets[SalesRep]),
+			    DIVIDE(SUM('FactHubSpotDeal'[SalesBudgetBuckets.6/1/2023]),COUNTROWS('FactHubSpotDeal'),0),
+			    SUMX(
+			        DISTINCT('FactHubSpotDeal'[DealSource]),
+			        FIRSTNONBLANK('FactHubSpotDeal'[SalesBudgetBuckets.6/1/2023],0)))
+		lineageTag: b4c99335-bd56-44e0-a958-0f72414bad4e
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Stretch Go Get' = SUM(SalesBudgetBuckets[1/1/2024]) - [TotalAchieved]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 436b491a-3b87-4745-a532-c9278c4b649d
+
+		changedProperty = FormatString
+
+	measure SumofTotalQBInvoicedAmount = SUM(FactHubSpotDeal[TotalQBInvoicedAmount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 33f1f218-f15b-4dd9-ac11-8649f9be32ef
+
+	measure 'SumofBudget original' =
+			IF(
+			    HASONEFILTER(SalesBudgetBuckets[SalesRep]),
+			    DIVIDE(SUM('FactHubSpotDeal'[SalesBudgetBuckets.1/1/2023]),COUNTROWS('FactHubSpotDeal'),0),
+			    SUMX(
+			        DISTINCT('FactHubSpotDeal'[DealSource]),
+			        FIRSTNONBLANK('FactHubSpotDeal'[SalesBudgetBuckets.1/1/2023],0)))
+		lineageTag: 136bfe03-6143-4f9d-84ea-259477c730c5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Original Go Get' = SUM(SalesBudgetBuckets[Original Budget]) - [TotalAchieved]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: ed7c733d-7a11-4e3b-bc32-b1d5d4fc72fc
+
+	measure Go/Get2 = IF(ISINSCOPE(FactHubSpotDeal[DealName]), BLANK(), [Original Go Get])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: dbc6c1bb-6092-435e-8a15-d7ac4493fc30
+
+	measure OB2 = IF(ISINSCOPE(FactHubSpotDeal[DealName]), BLANK(), SUM(SalesBudgetBuckets[Original Budget]))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 045d6803-f7ff-434d-abf7-c7fe208aa841
+
+	measure SGG2 = IF(ISINSCOPE(FactHubSpotDeal[DealName]), BLANK(), [Stretch Go Get])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: cf8ee9b7-60e4-4ab6-ac94-399a4c06f667
+
+	measure 'Stretch Budget2' = IF(ISINSCOPE(FactHubSpotDeal[DealName]), BLANK(), SUM(SalesBudgetBuckets[Stretch Budget]))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: b6d7edee-b3ae-4872-8b9c-e2e78dd70031
+
+	measure 'HubSpot Deal Latest Refresh Date Message' =
+			
+			VAR LatestRefreshDate = MAX(FactHubSpotDeal[LastRefreshDate])
+			RETURN
+			"Note: HubSpot data in this view was last refreshed " & FORMAT(LatestRefreshDate, "") & "."
+		lineageTag: ad24c181-17c3-4101-97a6-949bad33e55f
+
+	measure 'Solutions Pipeline Deals View by Stage Dynamic Title' =
+			
+			VAR LatestDateSelected = LASTDATE(DimDate[Date])
+			VAR EarliestDateSelected = FIRSTDATE(DimDate[Date])
+			RETURN
+			"Deals – View by Stage (" & FORMAT(EarliestDateSelected, "") & " – " & FORMAT(LatestDateSelected, "") & ")"
+		lineageTag: fe9f143e-0f0b-4ce7-bdb2-3e05c34a8843
+
+	measure 'Probable Amount (50%+)' =
+			
+			BLANK()
+		formatString: 0
+		lineageTag: 448c3a07-d0d6-4001-bfee-a6cc85314303
+
+	measure 'Project Revenue Dynamic Title' =
+			
+			VAR LatestDateSelected = LASTDATE(DimDate[Date])
+			VAR EarliestDateSelected = FIRSTDATE(DimDate[Date])
+			RETURN
+			"Project Revenue (" & FORMAT(EarliestDateSelected, "") & " – " & FORMAT(LatestDateSelected, "") & ")"
+		lineageTag: 8987c6e8-e13f-4774-b375-8a7a895b7469
+
+	measure 'Executive Summary Latest Date Message' =
+			
+			VAR LatestWeekAvailableLookup =
+			LOOKUPVALUE(DimDate[EoWDate], DimDate[LatestWeekEndingDateSort_Utilization], 0)
+			RETURN
+			"Note: Revenue results are as of the week of " & FORMAT(LatestWeekAvailableLookup, "") & "."
+		lineageTag: 07f77acd-06ac-471f-bc54-c9aa3426a320
+
+	measure 'Total Revenue by Deal Source - Fiscal YTD' =
+			
+			VAR SummaryTable =
+			SUMMARIZE(FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[DealSource_Cleaned], FactHubSpotDeal[TotalDealRevenue_FiscalYTDBySourced])
+			RETURN
+			SUMX(SummaryTable, FactHubSpotDeal[TotalDealRevenue_FiscalYTDBySourced])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: aa5a99e3-318f-47c4-b9a9-8c4001ae0eb1
+
+	measure 'Total Probable Amount - Fiscal YTD (75%+)' =
+			
+			VAR SummaryTable =
+			SUMMARIZE(FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[Amount], FactHubSpotDeal[Pipeline], FactHubSpotDeal[DealStageName], FactHubSpotDeal[StageProbabilty])
+			VAR SolutionsProbableRevenue =
+			SUMX(
+			    FILTER(SummaryTable,
+			        FactHubSpotDeal[StageProbabilty] >= 0.75
+			        && FactHubSpotDeal[Pipeline] = "Solutions Pipeline"
+			        && FactHubSpotDeal[DealStageName] IN {"Contract Outstanding", "Proposing", "Closed lost", "Target", "Potential Opportunity", "Discovering", "Meeting"}),
+			    FactHubSpotDeal[Amount])
+			VAR SmithAndHowardProbableRevenue =
+			SUMX(
+			    FILTER(SummaryTable,
+			        FactHubSpotDeal[StageProbabilty] >= 0.75
+			        && FactHubSpotDeal[Pipeline] = "Smith + Howard Referral Tracker"
+			        && FactHubSpotDeal[DealStageName] IN {"Proposing", "Closed lost", "Referral Opportunity", "Referred In", "Referred Out"}),
+			    FactHubSpotDeal[Amount])
+			RETURN
+			SolutionsProbableRevenue + SmithAndHowardProbableRevenue
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 3c10fb89-3abc-478e-8d77-740f400d8c66
+
+	measure 'Total Remaining Open Contract Amount by Deal Source - Fiscal YTD' =
+			
+			VAR SummaryTable =
+			SUMMARIZE(FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[DealSource_Cleaned], FactHubSpotDeal[RemainingOpenContractAmount_ByDealSource])
+			VAR RemainingOpenContract =
+			SUMX(SummaryTable, FactHubSpotDeal[RemainingOpenContractAmount_ByDealSource])
+			RETURN
+			IF(RemainingOpenContract = 0, BLANK(), RemainingOpenContract)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: d64a3877-b99f-498a-aca0-82dae5ff5e9e
+
+	measure 'Total Deal Amount Achieved (Deal Source)' =
+			
+			[Total Remaining Open Contract Amount by Deal Source - Fiscal YTD] + [Total Revenue by Deal Source - Fiscal YTD] + [Total Probable Amount - Fiscal YTD (75%+)]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 3f5e844d-e2d4-46ef-8e8b-72bf7b1e5f12
+
+	measure 'Total Remaining Open Contract Amount by Owner - Fiscal YTD' =
+			
+			VAR SummaryTable =
+			SUMMARIZE(FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[OwnerFullName], FactHubSpotDeal[RemainingOpenContractAmount_ByOwner])
+			VAR RemainingOpenAmount =
+			SUMX(SummaryTable, FactHubSpotDeal[RemainingOpenContractAmount_ByOwner])
+			RETURN
+			IF(RemainingOpenAmount = 0, BLANK(), RemainingOpenAmount)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 22bf3851-015a-4af6-b3ca-6f90b4c0d4f0
+
+	measure 'Total Revenue by Owner - Fiscal YTD' =
+			
+			VAR SummaryTable =
+			SUMMARIZE(FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[OwnerFullName], FactHubSpotDeal[TotalDealRevenue_FiscalYTDByOwner])
+			RETURN
+			SUMX(SummaryTable, FactHubSpotDeal[TotalDealRevenue_FiscalYTDByOwner])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: afdcc2b2-d5fe-4bf3-92b9-289a7a549322
+
+	measure 'Total Deal Amount Achieved (Owner)' =
+			
+			[Total Remaining Open Contract Amount by Owner - Fiscal YTD] + [Total Revenue by Owner - Fiscal YTD] + [Total Probable Amount - Fiscal YTD (75%+)]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 63b2530d-0f2e-4531-8732-0aaa091b6f65
+
+	measure 'Total Deal Contract Amount (All Stages)' =
+			
+			VAR SummaryTable =
+			CALCULATETABLE(
+			    SUMMARIZE(
+			        FactHubSpotDeal, FactHubSpotDeal[DealId], FactHubSpotDeal[Amount]))
+			RETURN
+			SUMX(SummaryTable, FactHubSpotDeal[Amount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 1f9f4864-73c3-44ae-8ed8-0c2ca7ab5f90
+
+	column DealId
+		dataType: int64
+		formatString: 0
+		lineageTag: 619b29ad-4464-47f9-92ad-f236d0f974db
+		summarizeBy: count
+		sourceColumn: DealId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amount
+		dataType: double
+		lineageTag: 93a061ba-b47a-452e-96e9-a2b26f126a29
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ClosedLostReason
+		dataType: string
+		lineageTag: 0205af39-f8a8-4774-9bf1-806c89496471
+		summarizeBy: none
+		sourceColumn: ClosedLostReason
+
+		annotation SummarizationSetBy = Automatic
+
+	column CloseDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: c48bb994-8a6b-48b3-ad25-39c552b55019
+		summarizeBy: none
+		sourceColumn: CloseDate
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CreateDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 6467456d-22a1-4b8c-8a09-e929069db8ad
+		summarizeBy: none
+		sourceColumn: CreateDate
+
+		variation Variation
+			isDefault
+			relationship: 3c0d79e3-2b03-4bc4-baec-a408eb718c2e
+			defaultHierarchy: LocalDateTable_35c5cc25-9cd6-4dc8-9022-22698899119f.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DaystoClose
+		dataType: double
+		lineageTag: f639b53b-ac5a-4ef5-9c38-d39f16042b26
+		summarizeBy: sum
+		sourceColumn: DaystoClose
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DealName
+		dataType: string
+		lineageTag: e26012f4-961d-4d56-a6ac-b0fb8553e267
+		summarizeBy: none
+		sourceColumn: DealName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealStage
+		dataType: string
+		lineageTag: 21000784-5ec6-4886-a5d1-3d484217b7a8
+		summarizeBy: none
+		sourceColumn: DealStage
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealType
+		dataType: string
+		lineageTag: 9b680bf4-2959-4b91-a135-13867114a401
+		summarizeBy: none
+		sourceColumn: DealType
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 4c0637cc-b2f4-4402-a105-3e76dbb992f7
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Annual Contract Value'
+		dataType: double
+		lineageTag: 5995bdee-5103-4de3-8206-90bc1a1832b9
+		summarizeBy: sum
+		sourceColumn: Annual Contract Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column OwnerID
+		dataType: int64
+		formatString: 0
+		lineageTag: 57c83e42-4962-4585-8cda-ef3e4dd8e6c7
+		summarizeBy: none
+		sourceColumn: OwnerID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClosedAmount
+		dataType: double
+		lineageTag: 92fd78ad-68a6-4910-b204-61f4dc182b79
+		summarizeBy: sum
+		sourceColumn: ClosedAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column StageProbabilty
+		dataType: double
+		lineageTag: a75b806f-6c1a-40b0-a1dc-36e6fc302a3e
+		summarizeBy: sum
+		sourceColumn: StageProbabilty
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ForecastAmount
+		dataType: double
+		lineageTag: aa7a58e1-9007-4062-ace4-c30af636bf9c
+		summarizeBy: sum
+		sourceColumn: ForecastAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ForecastProbability
+		dataType: double
+		lineageTag: c80b94a1-017c-42dd-813c-7d0b62d92c93
+		summarizeBy: sum
+		sourceColumn: ForecastProbability
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IsClosed
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: f19683a9-523f-48dd-a335-2d6fbd4d2af7
+		summarizeBy: none
+		sourceColumn: IsClosed
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsClosedWon
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ac17b5a7-1424-4490-b93a-25c5e9e43016
+		summarizeBy: none
+		sourceColumn: IsClosedWon
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastModifiedDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: ccade28b-2914-4597-8b64-2020bd61aa8d
+		summarizeBy: none
+		sourceColumn: LastModifiedDate
+
+		variation Variation
+			isDefault
+			relationship: 75bc4892-5531-486e-b75f-717c99f88d88
+			defaultHierarchy: LocalDateTable_99ac11b3-49ad-452f-832b-d0a6adfc6266.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ProjectedAmount
+		dataType: double
+		lineageTag: f9e727b5-ae95-49e5-82ab-a83f7b5787e9
+		summarizeBy: sum
+		sourceColumn: ProjectedAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Pipeline
+		dataType: string
+		lineageTag: f7b66422-a875-4132-a47b-6d8af5059152
+		summarizeBy: none
+		sourceColumn: Pipeline
+
+		annotation SummarizationSetBy = Automatic
+
+	column Director
+		dataType: string
+		lineageTag: 7a96eee5-0ac1-46a9-8448-6121d19f349b
+		summarizeBy: none
+		sourceColumn: Director
+
+		annotation SummarizationSetBy = Automatic
+
+	column WinningAmount =
+			IF(
+			'FactHubSpotDeal'[Amount]<>0,'FactHubSpotDeal'[Amount],0)
+		lineageTag: 7c30aea6-93c1-4df4-82a9-2e246fe30f14
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DisplayOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: e83d74eb-f958-473a-8b0a-01d5c2759119
+		summarizeBy: sum
+		sourceColumn: DisplayOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstName
+		dataType: string
+		lineageTag: de0d8bfd-4669-47d7-a00b-d20a4dd71c2a
+		summarizeBy: none
+		sourceColumn: FirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealStageBucket =
+			SWITCH(TRUE(),
+			'FactHubSpotDeal'[DealStageName] = "Closed Won","Closed Won",
+			'FactHubSpotDeal'[DealStageName] = "Closed Lost","Closed Lost",
+			'FactHubSpotDeal'[DealStageName] = "Completed Billing","Completed Billing",
+			"Pipelined")
+		lineageTag: 972f3c20-c4df-46c1-b4de-20b9a06f57ee
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysSinceClose
+		dataType: int64
+		formatString: 0
+		lineageTag: 7d6802da-8deb-46bd-af12-48286b79909c
+		summarizeBy: sum
+		sourceColumn: DaysSinceClose
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeBucket
+		dataType: string
+		lineageTag: d930840b-e267-4bdd-85b1-bff89b21863a
+		summarizeBy: none
+		sourceColumn: AgeBucket
+		sortByColumn: AgeID
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeID
+		dataType: string
+		lineageTag: 77e31c5e-6727-487f-88ee-7aa8982b16e3
+		summarizeBy: none
+		sourceColumn: AgeID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Exception = IF('FactHubSpotDeal'[AgeBucket]<>"Future" && 'FactHubSpotDeal'[DealStageBucket] = "Pipelined","Push Closed Date","")
+		lineageTag: 5daa152b-3eab-4bd3-8ee1-c479e15b8e6b
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column TrueDate = IF('FactHubSpotDeal'[DealStageBucket] = "Pipelined",'FactHubSpotDeal'[CreateDate],'FactHubSpotDeal'[CloseDate])
+		formatString: Short Date
+		lineageTag: 29a3e430-24a3-42dc-b922-a3f637330de5
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: c19c2246-890a-40bc-b8bd-cc1462042f29
+			defaultHierarchy: LocalDateTable_96f77619-e392-419c-9f3a-86920e3bbdfc.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CombinedDeal = 'FactHubSpotDeal'[DealName]&" (#:"&'FactHubSpotDeal'[DealId]&")"
+		lineageTag: 369edc62-a077-47f5-9c16-488fb5b4b7d5
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column RemainingOpenContractAmount_ByDealSource =
+			
+			IF(
+			    IF(
+			        'FactHubSpotDeal'[DealStageBucket] = "Closed Won",
+			        'FactHubSpotDeal'[Amount], 0) -
+			    FactHubSpotDeal[TotalDealRevenue_FiscalYTDBySourced] < 0,
+			    0, IF(
+			            'FactHubSpotDeal'[DealStageBucket] = "Closed Won",
+			            'FactHubSpotDeal'[Amount], 0)
+			        - FactHubSpotDeal[TotalDealRevenue_FiscalYTDBySourced]
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 629f29d7-84ae-45d8-9f74-df2de2a9b0b1
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealAge = TODAY()-'FactHubSpotDeal'[CreateDate]
+		dataType: int64
+		formatString: 0
+		lineageTag: e6701eb7-9035-4aab-92d9-bc6e805569b1
+		summarizeBy: sum
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column closed_won_reason
+		dataType: string
+		lineageTag: 3d42c3f3-4698-44d5-b68d-464879ced27e
+		summarizeBy: none
+		sourceColumn: closed_won_reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_analytics_source
+		dataType: string
+		lineageTag: 9709e0da-3c89-49e7-8a28-fe8089659555
+		summarizeBy: none
+		sourceColumn: hs_analytics_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_campaign
+		dataType: string
+		lineageTag: 2fcaed9c-b44d-4572-bfb2-f3863bdfe692
+		summarizeBy: none
+		sourceColumn: hs_campaign
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_latest_meeting_activity
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: bd811aac-df8f-4975-9197-03c6c77e94cc
+		summarizeBy: none
+		sourceColumn: hs_latest_meeting_activity
+
+		variation Variation
+			isDefault
+			relationship: 457bb45a-07a7-4017-af64-1892fb9f56cb
+			defaultHierarchy: LocalDateTable_2b5819c0-6339-4a3c-9877-dd63b0ab5a6f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_likelihood_to_close
+		dataType: double
+		lineageTag: 0c8ba099-dac7-4e52-b8d8-640a1a47283a
+		summarizeBy: sum
+		sourceColumn: hs_likelihood_to_close
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_num_target_accounts
+		dataType: double
+		lineageTag: 263e7bbd-3807-4f01-bb82-befc28df8dfe
+		summarizeBy: sum
+		sourceColumn: hs_num_target_accounts
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_object_id
+		dataType: double
+		lineageTag: 9ffc5c83-734d-46aa-ae51-f5b20a53c7c2
+		summarizeBy: sum
+		sourceColumn: hs_object_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_pinned_engagement_id
+		dataType: double
+		lineageTag: 8aea36b5-98bd-4c67-a537-e7e8df51bfbb
+		summarizeBy: sum
+		sourceColumn: hs_pinned_engagement_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_predicted_amount
+		dataType: double
+		lineageTag: fb921e39-65a1-4077-a791-f9ab7186a70e
+		summarizeBy: sum
+		sourceColumn: hs_predicted_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_predicted_amount_in_home_currency
+		dataType: double
+		lineageTag: 34126f38-a6b5-4efe-b493-12a07a0ff8bf
+		summarizeBy: sum
+		sourceColumn: hs_predicted_amount_in_home_currency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_priority
+		dataType: string
+		lineageTag: 70e3ca7f-adf3-4729-854b-95719590d172
+		summarizeBy: none
+		sourceColumn: hs_priority
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_projected_amount_in_home_currency
+		dataType: double
+		lineageTag: 81754886-9a2c-4e50-995a-e48b1f80b9ae
+		summarizeBy: sum
+		sourceColumn: hs_projected_amount_in_home_currency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hubspot_owner_id
+		dataType: int64
+		formatString: 0
+		lineageTag: bbacf277-19ee-421d-8953-219ccb36021c
+		summarizeBy: sum
+		sourceColumn: hubspot_owner_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hubspot_team_id
+		dataType: string
+		lineageTag: 4c419dc5-cef2-4693-8998-7f3097b5eb93
+		summarizeBy: none
+		sourceColumn: hubspot_team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column notes_last_contacted
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 14f910a0-1280-416f-a5b3-edccd79ede41
+		summarizeBy: none
+		sourceColumn: notes_last_contacted
+
+		variation Variation
+			isDefault
+			relationship: ff905470-a0ea-4727-9e1c-70129ae5b3c6
+			defaultHierarchy: LocalDateTable_b05fd040-ce8e-4492-b403-6cad4eb94f2c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column notes_last_updated
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 17fe54ab-beb7-410c-af65-3331c9bd7a0d
+		summarizeBy: none
+		sourceColumn: notes_last_updated
+
+		variation Variation
+			isDefault
+			relationship: f4b3ab7c-641d-4326-9309-f7f26fbc516b
+			defaultHierarchy: LocalDateTable_974718ad-f9ca-494c-bcc3-2ad35096b550.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column notes_next_activity_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3eca0594-e696-4887-916b-b584e094d3b4
+		summarizeBy: none
+		sourceColumn: notes_next_activity_date
+
+		variation Variation
+			isDefault
+			relationship: 01be9257-b25f-4890-a8f0-aca20d2c7a1f
+			defaultHierarchy: LocalDateTable_a1babe5c-afa9-4275-82b8-492cff02cc3b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_closed_won_count
+		dataType: double
+		lineageTag: 1511af81-4b09-42db-aff9-8474c97da5d9
+		summarizeBy: sum
+		sourceColumn: hs_closed_won_count
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_closed_won_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d3bf20f2-230e-4a9e-86ca-cb3fe0e70005
+		summarizeBy: none
+		sourceColumn: hs_closed_won_date
+
+		variation Variation
+			isDefault
+			relationship: 395b648c-a95a-4fad-abe4-61854f7b4f66
+			defaultHierarchy: LocalDateTable_4313231a-ad4b-4207-9035-711408c06485.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source
+		dataType: string
+		lineageTag: a67836a8-41d4-47ee-a81f-34a928a9bb14
+		summarizeBy: none
+		sourceColumn: hs_object_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_id
+		dataType: string
+		lineageTag: 1546e0ed-e68b-4a1e-824e-2dcdf942da84
+		summarizeBy: none
+		sourceColumn: hs_object_source_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_user_id
+		dataType: double
+		lineageTag: de634449-cae4-4dac-8d2f-4c89c760a6be
+		summarizeBy: sum
+		sourceColumn: hs_object_source_user_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_is_open_count
+		dataType: double
+		lineageTag: 48e11745-d3be-42d9-ac69-3689fbafcc6e
+		summarizeBy: sum
+		sourceColumn: hs_is_open_count
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AgingDate = TODAY()-'FactHubSpotDeal'[LastModifiedDate].[Date]
+		dataType: int64
+		formatString: 0
+		lineageTag: fbdcca23-38f4-4176-823b-797def96d65e
+		summarizeBy: sum
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_label
+		dataType: string
+		lineageTag: 9fa79e47-84fe-40d4-94d9-9e31dd9d0120
+		summarizeBy: none
+		sourceColumn: hs_object_source_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceLine
+		dataType: string
+		lineageTag: 13bc626f-896b-4ab1-bccf-0300516c52ca
+		summarizeBy: none
+		sourceColumn: ServiceLine
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SalesBudgetBuckets.1/1/2024'
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: d34ca6bf-5704-422b-86fa-d49776601026
+		summarizeBy: sum
+		sourceColumn: SalesBudgetBuckets.1/1/2024
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column referral_tier
+		dataType: string
+		lineageTag: a32da2d7-10c6-4e87-b3b2-282b546ea8c2
+		summarizeBy: none
+		sourceColumn: referral_tier
+
+		annotation SummarizationSetBy = Automatic
+
+	column referred_by
+		dataType: string
+		lineageTag: e7ee824a-6c82-477d-836b-99fdcbb5fee8
+		summarizeBy: none
+		sourceColumn: referred_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column referred_in_out
+		dataType: string
+		lineageTag: 2aa7b637-d166-452d-98e0-3a3f6e373130
+		summarizeBy: none
+		sourceColumn: referred_in_out
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_deal_score
+		dataType: double
+		lineageTag: f425fc66-0152-4bb9-891a-5b1aca82626d
+		summarizeBy: sum
+		sourceColumn: hs_deal_score
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column agreement_engagement_letter
+		dataType: string
+		lineageTag: 6ed80c9b-2787-470e-97f0-8e2960b3b8db
+		summarizeBy: none
+		sourceColumn: agreement_engagement_letter
+
+		annotation SummarizationSetBy = Automatic
+
+	column deal_attributed_to
+		dataType: string
+		lineageTag: 89e4943a-9bc8-492c-9b23-24331356b1b6
+		summarizeBy: none
+		sourceColumn: deal_attributed_to
+
+		annotation SummarizationSetBy = Automatic
+
+	column deal_tag
+		dataType: string
+		lineageTag: 899f2889-46ae-4b82-82b7-adecccf796ab
+		summarizeBy: none
+		sourceColumn: deal_tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_closed_deal_close_date
+		dataType: double
+		lineageTag: 0d2a5757-1075-47c6-b5a8-fe28d9366ffd
+		summarizeBy: sum
+		sourceColumn: hs_closed_deal_close_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_closed_deal_create_date
+		dataType: double
+		lineageTag: 98b66554-680c-4bd0-9a80-6a5ed4ab9055
+		summarizeBy: sum
+		sourceColumn: hs_closed_deal_create_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_is_closed_count
+		dataType: double
+		lineageTag: 916c5810-6fc4-4374-b3c1-d3e25ca78b85
+		summarizeBy: sum
+		sourceColumn: hs_is_closed_count
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_is_closed_lost
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e2610683-b201-4ab5-a33b-f8cc1ff00de3
+		summarizeBy: none
+		sourceColumn: hs_is_closed_lost
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_is_in_first_deal_stage
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: da7dfa1a-04dd-47d3-b403-6cecc81b62f4
+		summarizeBy: none
+		sourceColumn: hs_is_in_first_deal_stage
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_latest_approval_status
+		dataType: string
+		lineageTag: cf1e239e-8294-497d-b50b-36b56e276632
+		summarizeBy: none
+		sourceColumn: hs_latest_approval_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_latest_approval_status_approval_id
+		dataType: double
+		lineageTag: 681c3ebc-c40a-4ce0-8a0c-7f88762cf293
+		summarizeBy: sum
+		sourceColumn: hs_latest_approval_status_approval_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_open_deal_create_date
+		dataType: double
+		lineageTag: 62eb315b-1a0b-4e8a-8afd-570ff81ff515
+		summarizeBy: sum
+		sourceColumn: hs_open_deal_create_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column original_amount_value
+		dataType: double
+		lineageTag: 788a3b70-b5c2-4162-ae8d-c9885f07ab46
+		summarizeBy: sum
+		sourceColumn: original_amount_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column proposal
+		dataType: string
+		lineageTag: d1ca80c9-d6c4-4842-afad-de0c6f9b23dd
+		summarizeBy: none
+		sourceColumn: proposal
+
+		annotation SummarizationSetBy = Automatic
+
+	column target_type
+		dataType: string
+		lineageTag: 0ac90e48-466d-45a4-9d4d-aa7587af307e
+		summarizeBy: none
+		sourceColumn: target_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealSource
+		dataType: string
+		lineageTag: 66e60ea6-410f-4804-b286-c467ce73256e
+		summarizeBy: none
+		sourceColumn: DealSource
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastRefreshDate
+		dataType: string
+		lineageTag: a0adc1a6-8ce9-444f-9480-0033d83e8b16
+		summarizeBy: none
+		sourceColumn: LastRefreshDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalDealRevenue =
+			
+			VAR DealID = FactHubSpotDeal[DealId]
+			RETURN
+			CALCULATE(
+			    SUMX(FactSharePointUtilizationData, FactSharePointUtilizationData[Revenue]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Hubspot ID] = DealID
+			)
+		lineageTag: 092aab16-2bc6-469c-8158-1815799c788b
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CompanyID =
+			
+			LOOKUPVALUE(FactHubSpotDealCompanyBridge[CompanyId], FactHubSpotDealCompanyBridge[DealId], FactHubSpotDeal[DealId], FactHubSpotDealCompanyBridge[LabelDealCompany], "Primary")
+		formatString: 0
+		lineageTag: 5dfc984f-c311-43be-ae68-82f8d16a5813
+		summarizeBy: count
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerFullName
+		dataType: string
+		lineageTag: 6f59fda3-2528-4ebc-b378-8bc09987917e
+		summarizeBy: none
+		sourceColumn: OwnerFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerPosition
+		dataType: string
+		lineageTag: 3e1c83b4-9645-4a74-8b07-70dc0e5bc3c1
+		summarizeBy: none
+		sourceColumn: OwnerPosition
+		sortByColumn: OwnerPositionSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalDealHours =
+			
+			VAR DealID = FactHubSpotDeal[DealId]
+			RETURN
+			CALCULATE(
+			    SUMX(FactSharePointUtilizationData, FactSharePointUtilizationData[Total Hours]),
+			    ALL(FactSharePointUtilizationData),
+			    FactSharePointUtilizationData[Hubspot ID] = DealID
+			)
+		lineageTag: 8d3e0596-fa2c-480c-a197-8f14e149c810
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DealSource_Cleaned
+		dataType: string
+		lineageTag: 041587bb-cb3f-4746-8a7b-4164c3d350ed
+		summarizeBy: none
+		sourceColumn: DealSource_Cleaned
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealSourcePosition
+		dataType: string
+		lineageTag: c9619a57-fa7c-4829-b276-8f7feaf22cc6
+		summarizeBy: none
+		sourceColumn: DealSourcePosition
+		sortByColumn: DealSourcePositionSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealSourcePositionSort
+		dataType: string
+		lineageTag: 644bb5e3-73a4-4360-9ca5-2b2cc941d780
+		summarizeBy: none
+		sourceColumn: DealSourcePositionSort
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalDealRevenue_FiscalYTDBySourced =
+			
+			VAR DealID = FactHubSpotDeal[DealId]
+			VAR SourcedBy = FactHubSpotDeal[DealSource_Cleaned]
+			RETURN
+			CALCULATE(
+			    SUMX(FactSharePointUtilizationData, FactSharePointUtilizationData[Revenue]),
+			        ALL(FactSharePointUtilizationData),
+			        FactSharePointUtilizationData[DealSourcedBy] = SourcedBy,
+			        FactSharePointUtilizationData[Hubspot ID] = DealID
+			)
+		lineageTag: ae628bdf-a634-4caa-ab83-5780e440a508
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TotalDealRevenue_FiscalYTDByOwner =
+			
+			VAR DealID = FactHubSpotDeal[DealId]
+			VAR Owner = FactHubSpotDeal[OwnerFullName]
+			RETURN
+			CALCULATE(
+			    SUMX(FactSharePointUtilizationData, FactSharePointUtilizationData[Revenue]),
+			        ALL(FactSharePointUtilizationData),
+			        FactSharePointUtilizationData[OwnerFullName] = Owner,
+			        FactSharePointUtilizationData[Hubspot ID] = DealID
+			)
+		lineageTag: 62103a59-6eee-43a5-b1fc-f004868cc283
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RemainingOpenContractAmount_ByOwner =
+			
+			IF(
+			    IF(
+			        'FactHubSpotDeal'[DealStageBucket] = "Closed Won",
+			        'FactHubSpotDeal'[Amount], 0) -
+			    FactHubSpotDeal[TotalDealRevenue_FiscalYTDByOwner] < 0,
+			    0, IF(
+			            'FactHubSpotDeal'[DealStageBucket] = "Closed Won",
+			            'FactHubSpotDeal'[Amount], 0)
+			        - FactHubSpotDeal[TotalDealRevenue_FiscalYTDByOwner]
+			)
+		lineageTag: e34081e9-58ac-4aa6-9cd8-063125ddb9c6
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DealStageName
+		dataType: string
+		lineageTag: 107d1f4e-6c2c-494d-ae33-c5bc815df865
+		summarizeBy: none
+		sourceColumn: DealStageName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName =
+			
+			LOOKUPVALUE(FactHubSpotCompany[CompanyName], FactHubSpotCompany[CompanyId], FactHubSpotDeal[CompanyID])
+		lineageTag: 909d9b5c-89f9-4501-86bb-b13369c37bba
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnerPositionSort
+		dataType: string
+		lineageTag: fe3281c5-cf62-4d9b-8063-03ff6d24f4b2
+		summarizeBy: none
+		sourceColumn: OwnerPositionSort
+
+		annotation SummarizationSetBy = Automatic
+
+	column HubSpotIDSourcedByID
+		dataType: string
+		lineageTag: 53e98e54-c7a1-4e1a-a52c-2d2e845622fc
+		summarizeBy: none
+		sourceColumn: HubSpotIDSourcedByID
+
+		annotation SummarizationSetBy = Automatic
+
+	column HubSpotIDOwnerFullNameID
+		dataType: string
+		lineageTag: df64c539-5b5d-4f8a-8b60-5b415681dea9
+		summarizeBy: none
+		sourceColumn: HubSpotIDOwnerFullNameID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHubSpotDeal-ebfbb9d2-8a70-4657-bd78-855a6bab58c1 = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = #"FactHubSpotDeal_DataSource",
+				    #"Changed Type1" = Table.TransformColumnTypes(Source,{{"DealId", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1",{{"hs_acv", "Annual Contract Value"}, {"hs_deal_stage_probability", "StageProbabilty"}, {"closedate", "CloseDate"}, {"createdate", "CreateDate"}, {"closed_lost_reason", "ClosedLostReason"}, {"amount", "Amount"}, {"days_to_close", "DaystoClose"}, {"dealname", "DealName"}, {"dealstage", "DealStage"}, {"dealtype", "DealType"}, {"description", "Description"}, {"hs_all_owner_ids", "OwnerID"}, {"hs_closed_amount", "ClosedAmount"}, {"hs_forecast_amount", "ForecastAmount"}, {"hs_forecast_probability", "ForecastProbability"}, {"hs_is_closed", "IsClosed"}, {"hs_is_closed_won", "IsClosedWon"}, {"hs_lastmodifieddate", "LastModifiedDate"}, {"hs_projected_amount", "ProjectedAmount"}, {"pipeline", "Pipeline"}, {"deal_source", "DealSource"}}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Renamed Columns",{"DealId", "agreement_engagement_letter", "Amount", "ClosedLostReason", "closed_won_reason", "CloseDate", "CreateDate", "DaystoClose", "deal_attributed_to", "DealSource", "deal_tag", "DealName", "DealStage", "DealType", "Description", "Annual Contract Value", "OwnerID", "hs_analytics_source", "hs_campaign", "ClosedAmount", "hs_closed_deal_close_date", "hs_closed_deal_create_date", "hs_closed_won_count", "hs_closed_won_date", "hs_deal_score", "StageProbabilty", "ForecastAmount", "ForecastProbability", "IsClosed", "hs_is_closed_count", "hs_is_closed_lost", "IsClosedWon", "hs_is_in_first_deal_stage", "hs_is_open_count", "LastModifiedDate", "hs_latest_approval_status", "hs_latest_approval_status_approval_id", "hs_latest_meeting_activity", "hs_likelihood_to_close", "hs_num_target_accounts", "hs_object_id", "hs_object_source", "hs_object_source_id", "hs_object_source_label", "hs_object_source_user_id", "hs_open_deal_create_date", "hs_pinned_engagement_id", "hs_predicted_amount", "hs_predicted_amount_in_home_currency", "hs_priority", "ProjectedAmount", "hs_projected_amount_in_home_currency", "hubspot_owner_id", "hubspot_team_id", "notes_last_contacted", "notes_last_updated", "notes_next_activity_date", "original_amount_value", "Pipeline", "proposal", "referral_tier", "referred_by", "referred_in_out", "service_line", "target_type"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"CloseDate", type date}, {"CreateDate", type date}, {"LastModifiedDate", type date}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","9964364","closedwon",Replacer.ReplaceText,{"DealStage"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value","default","Solutions Pipeline",Replacer.ReplaceText,{"Pipeline"}),
+				    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","113522976","Smith + Howard Referral Tracker",Replacer.ReplaceText,{"Pipeline"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value5","13214522","closedlost",Replacer.ReplaceText,{"DealStage"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Replaced Value1", {"DealStage"}, DealPipelineStage, {"DealStage"}, "DealPipelineStage", JoinKind.LeftOuter),
+				    #"Expanded DealPipelineStage" = Table.ExpandTableColumn(#"Merged Queries", "DealPipelineStage", {"DisplayOrder", "StageLabel"}, {"DealPipelineStage.DisplayOrder", "DealPipelineStage.StageLabel"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Expanded DealPipelineStage",{{"DealPipelineStage.StageLabel", "DealStageName"}, {"DealPipelineStage.DisplayOrder", "DisplayOrder"}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns1",{"DealId", "Amount", "ClosedLostReason", "CloseDate", "CreateDate", "DaystoClose", "DealName", "DealStage", "DealStageName", "DealType", "Description", "Annual Contract Value", "OwnerID", "ClosedAmount", "StageProbabilty", "ForecastAmount", "ForecastProbability", "IsClosed", "IsClosedWon", "LastModifiedDate", "ProjectedAmount", "Pipeline", "DealSource"}),
+				    #"Replaced Value6" = Table.ReplaceValue(#"Reordered Columns","39965002, 193996555","193996555",Replacer.ReplaceText,{"OwnerID"}),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Replaced Value6",{{"OwnerID", Int64.Type}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Changed Type3", {"OwnerID"}, FactHubSpotOwner, {"hubspot_owner_id"}, "Owner", JoinKind.LeftOuter),
+				    #"Expanded Owner" = Table.ExpandTableColumn(#"Merged Queries1", "Owner", {"FirstName", "FullName"}, {"Owner.FirstName", "Owner.FullName"}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Expanded Owner",{{"Owner.FirstName", "FirstName"}, {"Owner.FullName", "FullName"}}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Renamed Columns2",null,"Unassigned",Replacer.ReplaceValue,{"FullName"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2",null,"Unassigned",Replacer.ReplaceValue,{"FirstName"}),
+				    #"Added DaysSinceClose" = Table.AddColumn(#"Replaced Value3", "DaysSinceClose", each Duration.Days(Date.From(DateTime.LocalNow())-Date.From([CloseDate])) ),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Added DaysSinceClose",{{"DaysSinceClose", Int64.Type}}),
+				    #"Added AgeBucket" = Table.AddColumn(#"Changed Type2", "AgeBucket", each if [DaysSinceClose] < 0 then "Future" else if [DaysSinceClose] <= 6 then "Last 7 Days" else if [DaysSinceClose] <= 29 then "8 - 30 Days" else if [DaysSinceClose] <= 89 then "31 - 90 Days" else "90+ Days"),
+				    #"Added AgeID" = Table.AddColumn(#"Added AgeBucket", "AgeID", each if [AgeBucket] = "Future" then 0 else if [AgeBucket] = "Last 7 Days" then 1 else if [AgeBucket] = "8 - 30 Days" then 2 else if [AgeBucket] = "31 - 90 Days" then 3 else 4),
+				    #"Changed Type4" = Table.TransformColumnTypes(#"Added AgeID",{{"DealId", Int64.Type}}),
+				    #"Renamed Columns3" = Table.RenameColumns(#"Changed Type4",{{"FullName", "Director"}}),
+				    #"Merged Queries4" = Table.NestedJoin(#"Renamed Columns3", {"DealSource"}, SalesBudgetBuckets, {"SalesRep"}, "SalesBudgetBuckets", JoinKind.LeftOuter),
+				    #"Expanded SalesBudgetBuckets" = Table.ExpandTableColumn(#"Merged Queries4", "SalesBudgetBuckets", {"1/1/2024"}, {"SalesBudgetBuckets.1/1/2024"}),
+				    #"Renamed Columns4" = Table.RenameColumns(#"Expanded SalesBudgetBuckets",{{"service_line", "ServiceLine"}}),
+				    #"Added LatestRefreshDate" = Table.AddColumn(#"Renamed Columns4", "LastRefreshDate", each DateTime.LocalNow()),
+				    #"Merged Queries5" = Table.NestedJoin(#"Added LatestRefreshDate", {"hubspot_owner_id"}, FactHubSpotOwner, {"hubspot_owner_id"}, "FactHubSpotOwner", JoinKind.LeftOuter),
+				    #"Expanded FactHubSpotOwner" = Table.ExpandTableColumn(#"Merged Queries5", "FactHubSpotOwner", {"FullName"}, {"OwnerFullName"}),
+				    #"Added OwnerPosition" = Table.AddColumn(#"Expanded FactHubSpotOwner", "OwnerPosition", each if [OwnerFullName] = "Matthew Edwards" then "Managing Partner" else if List.Contains({"Adam Tauzel", "Mark Brown", "Jeremy Clyde"}, [OwnerFullName]) then "Partner" else if List.Contains({"Corey Fields", "Michael Mosley", "Robert Burns", "Brad Ramsey"}, [OwnerFullName]) then "Director" else if List.Contains({"Jason Cuellar", "Michael Mazzanti", "Ronald Maples"}, [OwnerFullName]) then "Managing Director" else if [OwnerFullName] = "Mindy McRae" then "Bus Development Manager" else if List.Contains({"Chris Murphy", "Luke Mattorano", "Marissa Bonner", "Madison Schmidt", "Madison Mullins", "Chris Steele"}, [OwnerFullName]) then "Other" else null),
+				    #"Added DealSource_Cleaned" = Table.AddColumn(#"Added OwnerPosition", "DealSource_Cleaned", each if [DealSource] = "matthew_edwards" then "Matthew Edwards" else if List.Contains({"adam_tauzel;mindy_mcrae", "adam_tauzel, mindy_mcrae"}, [DealSource]) then "Adam Tauzel/Mindy McRae" else if [DealSource] = "chris_steele" then "Chris Steele" else if [DealSource] = "jason_cuellar" then "Jason Cuellar" else if [DealSource] = "broad_sky_partners" then "Broad Sky Partners" else if [DealSource] = "jeremy_clyde" then "Jeremy Clyde" else if [DealSource] = "lannie_morgan" then "Lannie Morgan" else if [DealSource] = "luke_mattorano" then "Luke Mattorano" else if [DealSource] = "mindy_mcrae" then "Mindy McRae" else if [DealSource] = "michael_mazzanti" then "Michael Mazzanti" else if [DealSource] = "mark_brown" then "Mark Brown" else if [DealSource] = "adam_tauzel" then "Adam Tauzel" else if [DealSource] = "ronald_maples" then "Ronald Maples" else if [DealSource] = "kim_compton" then "Kim Compton" else if List.Contains({"Smith + Howard", "smith___howard"}, [DealSource]) then "S+H" else if [DealSource] = "blake_mcfadden" then "Blake McFadden" else [DealSource]),
+				    #"Added DealSourcePosition" = Table.AddColumn(#"Added DealSource_Cleaned", "DealSourcePosition", each if [DealSource_Cleaned] = "Matthew Edwards" then "Managing Partner" else if List.Contains({"Adam Tauzel", "Mark Brown", "Jeremy Clyde"}, [DealSource_Cleaned]) then "Partner" else if List.Contains({"Corey Fields", "Michael Mosley", "Robert Burns", "Brad Ramsey"}, [DealSource_Cleaned]) then "Director" else if List.Contains({"Jason Cuellar", "Michael Mazzanti", "Ronald Maples"}, [DealSource_Cleaned]) then "Managing Director" else if [DealSource_Cleaned] = "Mindy McRae" then "Bus Development Manager" else if List.Contains({"Chris Murphy", "Luke Mattorano", "Marissa Bonner", "Madison Schmidt", "Madison Mullins", "Chris Steele", "Broad Sky Partners", "S+H", "Lannie Morgan", "Blake McFadden"}, [DealSource_Cleaned]) then "Other" else null),
+				    #"Added DealSourcePositionSort" = Table.AddColumn(#"Added DealSourcePosition", "DealSourcePositionSort", each if [DealSourcePosition] = "Managing Partner" then 1 else if [DealSourcePosition] = "Partner" then 2 else if [DealSourcePosition] = "Bus Development Manager" then 3 else if [DealSourcePosition] = "Managing Director" then 4 else if [DealSourcePosition] = "Director" then 5 else if [DealSourcePosition] = "Other" then 6 else null),
+				    #"Filtered Rows" = Table.SelectRows(#"Added DealSourcePositionSort", each [DealSource_Cleaned] <> "Adam Tauzel/Mindy McRae" and [DealSource_Cleaned] <> "adam_tauzel, smith___howard"),
+				    #"Append with Split Results" = Table.Combine({#"Filtered Rows", FactHubSpotDeal_Split_Source}),
+				    #"Changed Type6" = Table.TransformColumnTypes(#"Append with Split Results",{{"Amount", type number}}),
+				    #"Added DealStageName_Cleaned" = Table.AddColumn(#"Changed Type6", "Custom", each if [DealStage] = "201540478" then "Referred Out" else if [DealStage] = "201540479" then "Referred In" else if [DealStage] = "201540482" then "Closed Won" else if [DealStage] = "201540483" then "Closed Lost" else if [DealStage] = "203009852" then "Proposing" else if [DealStage] = "258279028" then "Completed Billing" else [DealStageName]),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added DealStageName_Cleaned",{"DealStageName"}),
+				    #"Renamed Columns5" = Table.RenameColumns(#"Removed Columns",{{"Custom", "DealStageName"}}),
+				    #"Replaced Value7" = Table.ReplaceValue(#"Renamed Columns5","Mindy Kay McRae","Mindy McRae",Replacer.ReplaceValue,{"OwnerFullName"}),
+				    #"Added OwnerPositionSort" = Table.AddColumn(#"Replaced Value7", "OwnerPositionSort", each if [OwnerPosition] = "Managing Partner" then 1 else if [OwnerPosition] = "Partner" then 2 else if [OwnerPosition] = "Managing Director" then 3 else if [OwnerPosition] = "Other" then 4 else null),
+				    #"Added Custom" = Table.AddColumn(#"Added OwnerPositionSort", "HubSpotIDSourcedByID", each Text.From([DealId]) & "-" & Text.Replace([DealSource_Cleaned], " ", "_")),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "HubSpotIDOwnerFullNameID", each Text.From([DealId]) & "-" & Text.Replace([OwnerFullName], " ", "_")),
+				    #"Changed Type5" = Table.TransformColumnTypes(#"Added Custom1",{{"HubSpotIDOwnerFullNameID", type text}, {"HubSpotIDSourcedByID", type text}})
+				in
+				    #"Changed Type5"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

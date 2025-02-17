@@ -1,0 +1,123 @@
+table FactSharePointResourceData
+	lineageTag: 1b199c2e-c630-4927-94c5-3ffa922e0e0b
+
+	column FullName
+		dataType: string
+		lineageTag: 0ca000d6-1e00-41fc-9667-c4d24fded39f
+		summarizeBy: none
+		sourceColumn: FullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column JournyxLookup
+		dataType: string
+		lineageTag: e5edfde7-c24c-4a62-b117-c8e7ad288a35
+		summarizeBy: none
+		sourceColumn: JournyxLookup
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceLine
+		dataType: string
+		lineageTag: f3eeeff7-e98b-4cba-bfe6-758106e16200
+		summarizeBy: none
+		sourceColumn: ServiceLine
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: e0968b5d-a586-4d31-bbf9-509e09794a9d
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column CatNumber
+		dataType: string
+		lineageTag: d8c9dab3-3f81-4152-8d82-cb6747c06517
+		summarizeBy: none
+		sourceColumn: CatNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPosition
+		dataType: string
+		lineageTag: 527d5ea3-37d1-4434-ac2f-24331c853bab
+		summarizeBy: none
+		sourceColumn: UserPosition
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjHours
+		dataType: double
+		lineageTag: 038206bf-4814-43cf-b23d-94d41d9a8561
+		summarizeBy: sum
+		sourceColumn: ProjHours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ProjUtilizationRate
+		dataType: double
+		lineageTag: 1a24d44d-0e89-445e-baab-e4056648fb9d
+		summarizeBy: sum
+		sourceColumn: ProjUtilizationRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PayRate
+		dataType: double
+		lineageTag: 6fe88a38-bc17-4da4-8329-a7be15bae0b3
+		summarizeBy: sum
+		sourceColumn: PayRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MinBillingRate
+		dataType: double
+		lineageTag: 74c5d2ed-6659-4616-8545-f7e21a285495
+		summarizeBy: sum
+		sourceColumn: MinBillingRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BillingRateMulitplier
+		dataType: string
+		lineageTag: 6f91dc08-fc3c-4221-85db-b6f95c9007d4
+		summarizeBy: none
+		sourceColumn: BillingRateMulitplier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactSharePointResourceData = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+				    #"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="Resource Utilization Tracker Working Master - 2025.xlsb",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+				    #"Resource Info" = #"Imported Excel Workbook"{[Name="Resource Info"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(#"Resource Info",{"Column1"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each ([Column2] <> null)),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Filtered Rows", [PromoteAllScalars=true]),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Promoted Headers",{"Name", "Journyx Look Up", "Service Line", "Status", "Cat #", "Category", "Proj. Hrs", "Proj Util. %", "Pay Rate", "Min Bill Rate", "Bill Rate Multiple"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Removed Other Columns","TBD","",Replacer.ReplaceText,{"Min Bill Rate"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","x","",Replacer.ReplaceText,{"Pay Rate"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{{"Min Bill Rate", type number}, {"Pay Rate", type number}, {"Proj Util. %", Percentage.Type}, {"Proj. Hrs", type number}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Category", "UserPosition"}, {"Name", "FullName"}, {"Bill Rate Multiple", "BillingRateMulitplier"}, {"Proj Util. %", "ProjUtilizationRate"}, {"Proj. Hrs", "ProjHours"}, {"Cat #", "CatNumber"}, {"Journyx Look Up", "JournyxLookup"}, {"Service Line", "ServiceLine"}, {"Min Bill Rate", "MinBillingRate"}, {"Pay Rate", "PayRate"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

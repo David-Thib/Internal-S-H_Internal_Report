@@ -1,0 +1,73 @@
+table SyncHistory
+	lineageTag: 62f2fcd1-2bdd-4c45-af8c-9d8479454d71
+
+	measure LastUpdated =
+			
+			CALCULATE("Last Updated "&MIN(SyncHistory[SyncTime]),SyncHistory[UpdateDate]=TODAY())
+		lineageTag: eb634e39-bfc7-46f2-b4ca-b22d2e321ee4
+
+	column APIType
+		dataType: string
+		lineageTag: 37ddec3e-f5b7-478e-84d2-4b82f1a7a338
+		summarizeBy: none
+		sourceColumn: APIType
+
+		annotation SummarizationSetBy = Automatic
+
+	column UpdateDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3c3ab751-466b-4ae7-a0c6-cbe9f53c2317
+		summarizeBy: none
+		sourceColumn: UpdateDate
+
+		variation Variation
+			isDefault
+			relationship: 3c4f6c67-6700-456f-b829-fe17be477759
+			defaultHierarchy: LocalDateTable_98d3df19-00a5-4488-a3f7-4a70868b8e41.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Processed
+		dataType: int64
+		formatString: 0
+		lineageTag: 4053aaaf-8aa2-4579-8ba3-fbde2b2fb8c4
+		summarizeBy: sum
+		sourceColumn: Processed
+
+		annotation SummarizationSetBy = Automatic
+
+	column SyncTime_UTC
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 803de5da-d3ab-493c-83c1-f79a59090f0a
+		summarizeBy: none
+		sourceColumn: SyncTime_UTC
+
+		variation Variation
+			isDefault
+			relationship: 7582c9bf-99f6-49b9-81f8-fd5c75fb4f80
+			defaultHierarchy: LocalDateTable_6ceaf3fc-ae65-49fa-9d80-8b816fe8997f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SyncHistory-bb35b46c-4568-4d6d-8bbe-a0be2ab5d1d7 = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+				    dbo_SyncHistory = Source{[Schema="dbo",Item="SyncHistory"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(dbo_SyncHistory, each ([APIType] = "Deal" or [APIType] = "DealPipelineStage" or [APIType] = "Owner")),
+				    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "UpdateDate", each Date.From([SyncTime_UTC])),
+				    #"Sorted Rows" = Table.Sort(#"Added Custom",{{"UpdateDate", Order.Descending}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Sorted Rows",{{"UpdateDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

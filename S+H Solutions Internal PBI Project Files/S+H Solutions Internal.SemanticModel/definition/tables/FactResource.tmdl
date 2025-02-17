@@ -1,0 +1,336 @@
+table FactResource
+	lineageTag: 8bedf890-237d-4838-b97d-bd512f4cd71a
+
+	measure 'Clickable BullHorn Link' =
+			
+			FIRSTNONBLANK(FactResource[Bullhorn Link], 0)
+		lineageTag: f6a670f6-cafd-4e5d-9ce0-415b93e99dec
+		dataCategory: WebUrl
+
+	column ID
+		dataType: int64
+		formatString: 0
+		lineageTag: 552dcb6c-833d-47dd-98c9-dc6d04e359b0
+		summarizeBy: count
+		sourceColumn: ID
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'QB ID'
+		dataType: string
+		lineageTag: d91a821b-4d85-4b41-89d9-dd6925e13d34
+		summarizeBy: none
+		sourceColumn: QB ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Modified
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 9babcdd8-996c-4e88-8bee-220ad3ec962b
+		summarizeBy: none
+		sourceColumn: Modified
+
+		variation Variation
+			isDefault
+			relationship: 6fd82a04-fa1e-4131-9724-a2aac6cc4526
+			defaultHierarchy: LocalDateTable_ebf4604b-ce62-45f1-bb4d-5ad02ad65f81.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Created
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7f277e25-c31c-4d05-a455-4186620dc54c
+		summarizeBy: none
+		sourceColumn: Created
+
+		variation Variation
+			isDefault
+			relationship: 3fc4f4d6-c92f-4223-8368-7bf3b9f75798
+			defaultHierarchy: LocalDateTable_c08cb7b0-7565-4958-a9ca-25f3dbbdfe82.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Full Name'
+		dataType: string
+		lineageTag: dfe88a0c-e55b-4e2c-b432-d2460dda6c9d
+		summarizeBy: none
+		sourceColumn: Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Professional Designations'
+		dataType: string
+		lineageTag: 948fee3c-e39b-4519-a0b8-8f8503a2e35e
+		summarizeBy: none
+		sourceColumn: Professional Designations
+
+		annotation SummarizationSetBy = Automatic
+
+	column Email
+		dataType: string
+		lineageTag: ed769d96-8614-4691-bde8-41067fd6ec96
+		summarizeBy: none
+		sourceColumn: Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Title'
+		dataType: string
+		lineageTag: aacf72cd-47c0-4daf-9296-3462851017a0
+		summarizeBy: none
+		sourceColumn: Job Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Type'
+		dataType: string
+		lineageTag: 2864969b-6882-4c7b-a89c-70ef418f6a27
+		summarizeBy: none
+		sourceColumn: Employee Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Preference'
+		dataType: string
+		lineageTag: 3ec4aef4-3bb6-4c18-a89c-a2df73508fb5
+		summarizeBy: none
+		sourceColumn: Employee Preference
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 675452db-cbed-478d-8d57-e9210e8f4acf
+		summarizeBy: none
+		sourceColumn: Start Date
+
+		variation Variation
+			isDefault
+			relationship: 2bcb5a48-9b35-4639-9786-6e547dc27c97
+			defaultHierarchy: LocalDateTable_9f9b27c4-d23a-4e6c-a3bb-14e006752415.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Available Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 45fbdf54-9d2f-47d3-9a63-fe572d643e8f
+		summarizeBy: none
+		sourceColumn: Available Date
+
+		variation Variation
+			isDefault
+			relationship: 3b42a7c0-1377-4f5a-9f73-bae0729c1c6d
+			defaultHierarchy: LocalDateTable_08fe677f-7d98-40c3-9771-3d1ad9a5b1de.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Active
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: b5b7b34b-13e0-4211-94b9-ec31110dae33
+		summarizeBy: none
+		sourceColumn: Active
+
+		annotation SummarizationSetBy = Automatic
+
+	column Availability
+		dataType: string
+		lineageTag: 38eba398-e1e2-4351-b3cf-c55f99fa070a
+		summarizeBy: none
+		sourceColumn: Availability
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Utilization Percentage'
+		dataType: double
+		lineageTag: 3c3894f5-2327-4f33-8c88-a33b3dd1dc0b
+		summarizeBy: sum
+		sourceColumn: Utilization Percentage
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Booked Weekly Hours'
+		dataType: double
+		lineageTag: c292a3d3-1f9e-4280-b82b-4ea8fb2ea73e
+		summarizeBy: sum
+		sourceColumn: Booked Weekly Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Desired Maximum Hours'
+		dataType: double
+		formatString: 0
+		lineageTag: c1019057-bd21-4c56-b935-9f7cd4219e82
+		summarizeBy: sum
+		sourceColumn: Desired Maximum Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column Director
+		dataType: string
+		lineageTag: 44b292bc-21ad-431c-8603-e7bfe1872cb0
+		summarizeBy: none
+		sourceColumn: Director
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Years of Experience'
+		dataType: int64
+		formatString: 0
+		lineageTag: 25020375-19c1-47ff-a9b6-09ae7e2e2238
+		summarizeBy: sum
+		sourceColumn: Years of Experience
+
+		annotation SummarizationSetBy = Automatic
+
+	column Level
+		dataType: string
+		lineageTag: 84296cf0-0f66-43cf-97f5-bff1c4efa92b
+		summarizeBy: none
+		sourceColumn: Level
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Profile Link'
+		dataType: string
+		lineageTag: c7af88e1-8534-4bdd-b650-b477fdec6e65
+		summarizeBy: none
+		sourceColumn: Profile Link
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bullhorn Link'
+		dataType: string
+		lineageTag: 9cc4f84e-8d6b-4b7c-94a7-d023d822bca0
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Bullhorn Link
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bill Rate'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ceb2acd-8e2a-4096-a82c-1a49ccb58168
+		summarizeBy: sum
+		sourceColumn: Bill Rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Pay Rate'
+		dataType: int64
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 9f0f5df1-b4da-4d6f-9fbb-a792a708ceca
+		summarizeBy: sum
+		sourceColumn: Pay Rate
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column BullHorn
+		dataType: string
+		lineageTag: 7709fc31-e44f-406e-b7d4-aa26129e3b69
+		summarizeBy: none
+		sourceColumn: BullHorn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Remaining Hours'
+		dataType: string
+		lineageTag: 0c424682-14a1-4ddb-a810-4a1d2d354816
+		summarizeBy: none
+		sourceColumn: Remaining Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column Utilization = DIVIDE(FactResource[Booked Weekly Hours],FactResource[Desired Maximum Hours],0)
+		formatString: 0%;-0%;0%
+		lineageTag: e5bc1915-a54e-4092-b400-802db6790909
+		summarizeBy: sum
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column AvailabilityFilter =
+			SWITCH(TRUE,
+			[Utilization] < .11, "Available",
+			[Utilization] < .99, "Partial",
+			"Unavailable")
+		lineageTag: 25e50bbd-9056-43c5-b96e-bc425f228a86
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimResource.Location'
+		dataType: string
+		lineageTag: 5c6a2592-ef2c-4dd4-81a0-e9bd65737f78
+		summarizeBy: none
+		sourceColumn: DimResource.Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimResource.Systems'
+		dataType: string
+		lineageTag: 036f8ada-96ce-43b3-8509-13a7a826b0f3
+		summarizeBy: none
+		sourceColumn: DimResource.Systems
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimResource.Industry Experience'
+		dataType: string
+		lineageTag: 2eb842db-937d-4ff5-a9af-e894f960b116
+		summarizeBy: none
+		sourceColumn: DimResource.Industry Experience
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DimResource.Profile Skills'
+		dataType: string
+		lineageTag: 75e0294e-d2b9-4a12-8e61-356905fc0eb0
+		summarizeBy: none
+		sourceColumn: DimResource.Profile Skills
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactResource-e1c7c566-1f62-4f37-a384-9ba6fbf376dd = m
+		mode: import
+		queryGroup: Resources
+		source =
+				let
+				    Source = #"Resource List",
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"Profile Skills", "Industry Experience", "Systems", "Service Line", "Location"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Columns", {"QB ID"}),
+				    #"Added Custom" = Table.AddColumn(#"Removed Duplicates", "BullHorn", each "Link"),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each ([QB ID] <> null)),
+				    #"Merged Queries" = Table.NestedJoin(#"Filtered Rows", {"QB ID"}, DimResource, {"QB ID"}, "DimResource", JoinKind.LeftOuter),
+				    #"Expanded DimResource" = Table.ExpandTableColumn(#"Merged Queries", "DimResource", {"Location", "Systems", "Industry Experience", "Profile Skills"}, {"DimResource.Location", "DimResource.Systems", "DimResource.Industry Experience", "DimResource.Profile Skills"})
+				in
+				    #"Expanded DimResource"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

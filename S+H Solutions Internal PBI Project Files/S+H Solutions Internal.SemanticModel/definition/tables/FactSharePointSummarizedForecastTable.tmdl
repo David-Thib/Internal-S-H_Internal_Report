@@ -1,0 +1,64 @@
+table FactSharePointSummarizedForecastTable
+	lineageTag: 6247fb91-7c46-4b63-91b4-166873450789
+
+	measure 'Total Weekly Forecast Revenue Amount - YTD' =
+			
+			VAR LatestFiscalYear = MAX(DimDate[FiscalYear])
+			VAR LatestWeekSelected = LASTDATE(DimDate[EoWDate])
+			RETURN
+			CALCULATE(
+			    SUM(FactSharePointSummarizedForecastTable[WeeklyRevenueForecast]),
+			    ALL(DimDate),
+			    DimDate[FiscalYear] = LatestFiscalYear && DimDate[EoWDate] <= LatestWeekSelected)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 42405e13-a3af-49f6-b7aa-fdfa44390b1e
+
+	column EoWDate
+		formatString: Short Date
+		lineageTag: b131064e-7036-4a24-8931-f8d7b55b75d7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: DimDate[EoWDate]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeeklyRevenueForecast
+		lineageTag: e78a6356-8942-4f3a-88a9-9822d8fa62e6
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [WeeklyRevenueForecast]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MonthEndingDate
+		formatString: Short Date
+		lineageTag: 2aa00195-0cd0-4588-9e6a-f81b2b2d1a94
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: DimDate[MonthEndingDate]
+
+		variation Variation
+			isDefault
+			relationship: e3b9b59e-4e09-43ab-a258-d617ef9d111b
+			defaultHierarchy: LocalDateTable_7919f2eb-4e40-42e7-8073-aac80aed4296.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactSharePointSummarizedForecastTable = calculated
+		mode: import
+		source =
+				
+				ADDCOLUMNS(
+				    SUMMARIZE(DimDate, DimDate[EoWDate], DimDate[MonthEndingDate]),
+				        "WeeklyRevenueForecast",
+				        VAR MonthEndingDate = DimDate[MonthEndingDate]
+				        RETURN
+				        CALCULATE(
+				            MAX(FactSharePointWeeklyForecastData[WeeklyRevenueFcst]),
+				            FactSharePointWeeklyForecastData[MonthEndingDate] = MonthEndingDate)
+				)
+
+	annotation PBI_Id = bebe2f98182246709dd3a8503fabce5e
+

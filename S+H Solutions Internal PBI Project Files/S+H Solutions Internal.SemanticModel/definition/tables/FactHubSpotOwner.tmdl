@@ -1,0 +1,149 @@
+table FactHubSpotOwner
+	lineageTag: aa20d80c-d98e-4b15-a44a-a807d2b479f5
+
+	column hubspot_owner_id
+		dataType: int64
+		formatString: 0
+		lineageTag: d83c8a50-2294-460f-a126-68b580a903a4
+		summarizeBy: sum
+		sourceColumn: hubspot_owner_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserId
+		dataType: int64
+		formatString: 0
+		lineageTag: 092a35c5-9813-4394-affc-2220a3709b7b
+		summarizeBy: count
+		sourceColumn: UserId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Email
+		dataType: string
+		lineageTag: 39cf73e5-787a-42d0-b76d-3e11802b5413
+		summarizeBy: none
+		sourceColumn: Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_createdate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f445124d-639e-40dc-a605-44eacfa57467
+		summarizeBy: none
+		sourceColumn: hs_createdate
+
+		variation Variation
+			isDefault
+			relationship: ea4ccee7-9c47-43ca-b051-a66324f499d7
+			defaultHierarchy: LocalDateTable_25f4f0e4-b2b4-4cdf-bd28-495f6f2bdaac.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_deactivated
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 40857262-0509-4df3-a0ed-3611c7a285fe
+		summarizeBy: none
+		sourceColumn: hs_deactivated
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_email
+		dataType: string
+		lineageTag: 3c59d4df-7ad5-40d1-ac25-72cf3422a325
+		summarizeBy: none
+		sourceColumn: hs_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_job_title
+		dataType: string
+		lineageTag: 88ade734-ca0b-4b1f-9c1e-cff3545335b8
+		summarizeBy: none
+		sourceColumn: hs_job_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_main_phone
+		dataType: string
+		lineageTag: cfd09a67-cbab-4c7a-8d19-3021609d9316
+		summarizeBy: none
+		sourceColumn: hs_main_phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_manager
+		dataType: string
+		lineageTag: d478489e-c4c2-4410-a9e2-764f8dc6881a
+		summarizeBy: none
+		sourceColumn: hs_manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source
+		dataType: string
+		lineageTag: 0e593a44-169f-40e3-a5c2-8532fb2176eb
+		summarizeBy: none
+		sourceColumn: hs_object_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column hubspot_team_id
+		dataType: string
+		lineageTag: 22b5e9d8-ecdd-476d-b2e0-52de615cf384
+		summarizeBy: none
+		sourceColumn: hubspot_team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstName
+		dataType: string
+		lineageTag: 5ee8623d-ad02-4eb6-8946-582070524a2e
+		summarizeBy: none
+		sourceColumn: FirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastName
+		dataType: string
+		lineageTag: b8102746-c1d2-4ac4-9ec0-f8f793a50f0d
+		summarizeBy: none
+		sourceColumn: LastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Teams
+		dataType: string
+		lineageTag: 36d3297f-c069-4d56-a088-b60108a74417
+		summarizeBy: none
+		sourceColumn: Teams
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullName
+		dataType: string
+		lineageTag: 5d18828f-66dc-45de-ad1e-e84f64a34f74
+		summarizeBy: none
+		sourceColumn: FullName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHubSpotOwner = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = #"FactHubSpotOwner_DataSource",
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"CreatedAt", "HasContactsAccess", "PortalId", "Type", "UpdatedAt", "Role"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns",{"hubspot_owner_id", "UserId", "Email", "FirstName", "LastName", "Teams"}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Reordered Columns", "FullName", each Text.Combine({[FirstName], [LastName]}, " "), type text),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Inserted Merged Column",{"hubspot_owner_id", "UserId", "Email", "hs_createdate", "hs_deactivated", "hs_email", "hs_job_title", "hs_main_phone", "hs_manager", "hs_object_source", "hubspot_team_id", "FirstName", "LastName", "Teams", "FullName"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

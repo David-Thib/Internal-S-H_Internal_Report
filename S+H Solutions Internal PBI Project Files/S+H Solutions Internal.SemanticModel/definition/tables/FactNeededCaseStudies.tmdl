@@ -1,0 +1,103 @@
+table FactNeededCaseStudies
+	lineageTag: 91311546-218d-481f-bf08-f9ceed12b087
+
+	measure 'Total Needed Case Studies Count' =
+			
+			COUNTROWS(FactNeededCaseStudies)
+		formatString: 0
+		lineageTag: 3b310e8d-7f45-46d6-a89e-8b21831c7bf2
+
+	column 'Record ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ce8a9d5-bdba-4087-9520-5b5b06ca643b
+		summarizeBy: count
+		sourceColumn: Record ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Deal Name'
+		dataType: string
+		lineageTag: e65eefd9-2f81-453b-8100-dc5071d80233
+		summarizeBy: none
+		sourceColumn: Deal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Associated Company (Primary)'
+		dataType: string
+		lineageTag: 539b801d-415e-4978-a183-ac4ebceffa99
+		summarizeBy: none
+		sourceColumn: Associated Company (Primary)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Deal Stage'
+		dataType: string
+		lineageTag: 52989bc5-f654-41fa-a86f-f7a49727cb4f
+		summarizeBy: none
+		sourceColumn: Deal Stage
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amount
+		dataType: double
+		lineageTag: 4c02c4b6-ac27-4af2-9b18-3cd3f9a33f90
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Create Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 3591415a-71dd-409c-a3aa-7ac81c6ea96f
+		summarizeBy: none
+		sourceColumn: Create Date
+
+		variation Variation
+			isDefault
+			relationship: dfc92ed6-e818-4acb-800c-2719f53bce3c
+			defaultHierarchy: LocalDateTable_e26b2f46-7f7e-4038-b1f5-02d7dc9f0729.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Deal owner'
+		dataType: string
+		lineageTag: e7f4f600-9fcb-4b62-a446-260d3b6ad07f
+		summarizeBy: none
+		sourceColumn: Deal owner
+
+		annotation SummarizationSetBy = Automatic
+
+	column Completed?
+		dataType: string
+		lineageTag: 31f31470-95e9-472b-8195-c3e73b36e99c
+		summarizeBy: none
+		sourceColumn: Completed?
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactNeededCaseStudies = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://vipsearchgroup.sharepoint.com/Shared Documents/Administrative/Training/")),
+				    #"Unbillable Time Sandbox xlsx_https://vipsearchgroup sharepoint com/Shared Documents/Administrative/Training/" = #"Filtered Rows"{[Name="Unbillable Time Sandbox.xlsx",#"Folder Path"="https://vipsearchgroup.sharepoint.com/Shared Documents/Administrative/Training/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Unbillable Time Sandbox xlsx_https://vipsearchgroup sharepoint com/Shared Documents/Administrative/Training/"),
+				    #"Case Studies Needed_Sheet" = #"Imported Excel Workbook"{[Item="Case Studies Needed",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Case Studies Needed_Sheet", [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Amount", type number}, {"Create Date", type date}, {"Record ID", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

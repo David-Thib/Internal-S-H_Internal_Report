@@ -1,0 +1,1064 @@
+table FactHubSpotInvoices
+	lineageTag: b455f2b6-370f-4d22-871e-b0938d85e132
+
+	measure #ofWeeksPassed(New) = WEEKNUM(MAX(FactHubSpotInvoices[EoWDate]))
+		formatString: 0
+		lineageTag: 0f653db1-a915-4d5e-8c37-0e4e05ac46be
+
+	measure SumofRevenueSQL(New) = if(isblank(SUM(FactHubSpotInvoices[InvoiceLineAmount]))=TRUE(),0,SUM(FactHubSpotInvoices[InvoiceLineAmount]))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: bb44e849-4b80-4b6a-aa06-72cd951f0e48
+
+		changedProperty = FormatString
+
+	measure YTDRevenue(New) = ```
+			
+			    VAR _year = YEAR(TODAY())
+			    
+			    return CALCULATE(TOTALYTD([SumofRevenueSQL(New)],DimDate[Date],DimDate[Year]=_year)+0)
+			```
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: e7ed3915-b0ee-4d07-a988-28d9facead7b
+
+		changedProperty = FormatString
+
+	measure YTDWeeklyAvg(New) = DIVIDE([YTDRevenue(New)],[#ofWeeksPassed(New)],0)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7f737be0-a28a-4f3d-81f2-46a09d3a7bb2
+
+		changedProperty = FormatString
+
+	measure WeeklySalesRequired(New) = DIVIDE((5950000-[YTDRevenue(New)]),[#ofRemainingWeeks(New)],0)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: c937d54c-64a1-4f88-838e-29452ae98d61
+
+		changedProperty = FormatString
+
+	measure 'Sales PY(New)' = CALCULATE(TOTALYTD([SumofRevenueSQL(New)],DATEADD(DimDate[Date],-1,YEAR),DimDate[Future]<>"Future")+0)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 8088f87f-4d87-4b67-96c0-486f1aec1f3b
+
+		changedProperty = FormatString
+
+	measure QTDRevenue(New) = ```
+			
+			    VAR _year = YEAR(TODAY())
+			    RETURN CALCULATE(TOTALQTD([SumofRevenueSQL(New)],DimDate[Date],DimDate[Year]=_year)+0)
+			```
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 711aa7c4-d43f-4718-a192-f3645a7cedd7
+
+		changedProperty = FormatString
+
+	measure PreviousWeekSales(New) = ```
+			
+			var MaxDate = 
+			    CALCULATE(
+			        LASTNONBLANK(FactHubSpotInvoices[EoWDate],0),
+			        ALL(FactHubSpotInvoices))
+			return CALCULATE([SumofRevenueSQL(New)],FactHubSpotInvoices[EoWDate]=(MaxDate-7))
+			```
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 2e91f932-98dc-46de-a610-c4e3677809b3
+
+		changedProperty = FormatString
+
+	measure PreviousMTD(New) = CALCULATE([MTDRevenue(New)],DATEADD(DimDate[Date],-1,MONTH))
+		lineageTag: 28e2141e-ffb8-4439-baf2-84a8fea62616
+
+	measure MTDRevenue(New) = ```
+			
+			    VAR _year = YEAR(TODAY())
+			    RETURN CALCULATE(TOTALMTD([SumofRevenueSQL(New)],DimDate[Date],DimDate[Year]=_year)+0)
+			```
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 1351881b-ac0e-4a2d-9615-c60290ac1035
+
+	measure 'Last Invoice Date(New)' =
+			"Last Invoice Date: "&CALCULATE(LASTNONBLANK(FactHubSpotInvoices[EoWDate],0),
+			        ALL(FactHubSpotInvoices))
+		lineageTag: 64f71ead-6c2b-49ab-9337-eb8b4efdbfa7
+
+	measure ForecastedRevenue(New) = [#ofRemainingWeeks(New)]*[YTDWeeklyAvg(New)]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7a05f1b7-71f0-440b-97ce-744e7d8360c5
+
+		changedProperty = FormatString
+
+	measure 'Forecasted (YTD)(New)' = [ForecastedRevenue(New)]+[YTDRevenue(New)]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: eec13993-0a52-48fe-88c3-f6a71e51ad91
+
+		changedProperty = FormatString
+
+	measure AverageWeek(New) = ```
+			
+			VAR LastDateGlobal =
+			    CALCULATETABLE(
+			        LASTNONBLANK(FactHubSpotInvoices[EoWDate],0),
+			        ALL(FactHubSpotInvoices)
+			    )
+			Return 
+			    DIVIDE(CALCULATE([SumofRevenueSQL(New)], DATESINPERIOD(DimDate[Date],LastDateGlobal,-28,DAY))+0,4,0)
+			```
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 2f5ce1b5-d6d8-40eb-80b0-980b61a49432
+
+		changedProperty = FormatString
+
+	measure 'Invoice Go/Get' = InvoiceBudget[Invoice Budget Sum] - [Forecasted (YTD)(New)]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 9edfc484-9a86-417c-94ca-24fdd0275b02
+
+	measure 'Invoice Go/Get2' = InvoiceBudget[Invoice Budget Sum]-[YTDRevenue(New)]
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 445d0eb0-1eda-4662-90f4-9a246830af4f
+
+	column InvoiceId
+		dataType: int64
+		formatString: 0
+		lineageTag: f40001d3-4af9-42f8-9766-75fac0b300ce
+		summarizeBy: count
+		sourceColumn: InvoiceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_all_accessible_team_ids
+		dataType: string
+		lineageTag: 161422d0-b89d-4d27-809b-956caf90cefa
+		summarizeBy: none
+		sourceColumn: hs_all_accessible_team_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_all_assigned_business_unit_ids
+		dataType: string
+		lineageTag: 8173b525-5a7b-4a67-a597-38e025265e85
+		summarizeBy: none
+		sourceColumn: hs_all_assigned_business_unit_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_all_owner_ids
+		dataType: string
+		lineageTag: 38de1bab-e0d2-4d88-8177-b31f3c266853
+		summarizeBy: none
+		sourceColumn: hs_all_owner_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_all_team_ids
+		dataType: string
+		lineageTag: af6d2e92-4aa2-4cbd-bb72-b1022532f6b6
+		summarizeBy: none
+		sourceColumn: hs_all_team_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_allow_partial_payments
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ed6568ec-299f-48b9-b9a4-b8da2d9ebf3e
+		summarizeBy: none
+		sourceColumn: hs_allow_partial_payments
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_allowed_payment_methods
+		dataType: string
+		lineageTag: 255626f9-e9d0-4f45-af15-ea1505892d33
+		summarizeBy: none
+		sourceColumn: hs_allowed_payment_methods
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_amount_billed
+		dataType: double
+		lineageTag: 82630471-27dd-42a0-ba07-3bfac04fca30
+		summarizeBy: sum
+		sourceColumn: hs_amount_billed
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_amount_billed_in_company_currency
+		dataType: double
+		lineageTag: 594be03e-59f0-4553-a70a-51eec658bd45
+		summarizeBy: sum
+		sourceColumn: hs_amount_billed_in_company_currency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_amount_billed_pre_tax
+		dataType: double
+		lineageTag: de2456fd-0ba2-47b0-916d-97966be8f4b1
+		summarizeBy: sum
+		sourceColumn: hs_amount_billed_pre_tax
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_amount_paid
+		dataType: double
+		lineageTag: 85f9f3ad-c4f1-43e1-8e53-fd380c88efe2
+		summarizeBy: sum
+		sourceColumn: hs_amount_paid
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_amount_paid_in_company_currency
+		dataType: double
+		lineageTag: 1ce4455e-f23c-4cc5-846b-5b19140ed826
+		summarizeBy: sum
+		sourceColumn: hs_amount_paid_in_company_currency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_amount_processing
+		dataType: double
+		lineageTag: 4497f629-4d04-4727-813f-69a9ca212ba4
+		summarizeBy: sum
+		sourceColumn: hs_amount_processing
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_associated_line_item_names
+		dataType: string
+		lineageTag: fa2c1a1e-f8d4-42b2-a946-bcbe76b55651
+		summarizeBy: none
+		sourceColumn: hs_associated_line_item_names
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_balance_due
+		dataType: double
+		lineageTag: 26824e74-8793-4ca2-99e8-edc0658aeb6f
+		summarizeBy: sum
+		sourceColumn: hs_balance_due
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_balance_due_in_company_currency
+		dataType: double
+		lineageTag: 1ff66417-016a-4e37-959e-9c2c4cf80e39
+		summarizeBy: sum
+		sourceColumn: hs_balance_due_in_company_currency
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_billing_frequency_type
+		dataType: string
+		lineageTag: 3e360107-9205-4b65-a0f8-569a35131bcd
+		summarizeBy: none
+		sourceColumn: hs_billing_frequency_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_collect_address_types
+		dataType: string
+		lineageTag: e1cb7ef2-2c93-4472-bc07-b4bc3d8140fe
+		summarizeBy: none
+		sourceColumn: hs_collect_address_types
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_comments
+		dataType: string
+		lineageTag: 5711254a-602e-41ba-b56e-3bd0bc0b64c5
+		summarizeBy: none
+		sourceColumn: hs_comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_created_by_user_id
+		dataType: int64
+		formatString: 0
+		lineageTag: cded415b-e508-4dbe-a46e-84984abd685a
+		summarizeBy: sum
+		sourceColumn: hs_created_by_user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_createdate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: db534857-1445-4e34-9868-74fd08324ac5
+		summarizeBy: none
+		sourceColumn: hs_createdate
+
+		variation Variation
+			isDefault
+			relationship: f3d26e51-1bb3-46d9-8a46-f6136a5d1ff4
+			defaultHierarchy: LocalDateTable_645c31ee-a002-4ef1-8523-c42586e00136.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_currency
+		dataType: string
+		lineageTag: 48a1eaec-39eb-4651-8e00-f96273b4607c
+		summarizeBy: none
+		sourceColumn: hs_currency
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_custom_fields
+		dataType: string
+		lineageTag: 577d21f2-6309-4b30-b57c-58d6caf3740c
+		summarizeBy: none
+		sourceColumn: hs_custom_fields
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_days_paid_late
+		dataType: string
+		lineageTag: e45b05cc-bbfc-4e2b-9d50-046091be4051
+		summarizeBy: none
+		sourceColumn: hs_days_paid_late
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_discounts_total
+		dataType: double
+		lineageTag: 4c4d67fe-df07-4948-99d1-2895ca0eb2c5
+		summarizeBy: sum
+		sourceColumn: hs_discounts_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_domain
+		dataType: string
+		lineageTag: 7d952559-767c-4acd-9330-3b8a14e8849b
+		summarizeBy: none
+		sourceColumn: hs_domain
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_due_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5d466b63-a302-41f9-ba8e-0f07fb659912
+		summarizeBy: none
+		sourceColumn: hs_due_date
+
+		variation Variation
+			isDefault
+			relationship: 9a14835c-3571-4d19-88b7-71cc1d30fe15
+			defaultHierarchy: LocalDateTable_c97c1812-a3f3-4926-a67a-5370df957039.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_exchange_rate
+		dataType: double
+		lineageTag: 4c96bc93-ca9e-4eff-9af2-fc8ab880d5e4
+		summarizeBy: sum
+		sourceColumn: hs_exchange_rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_external_account_id
+		dataType: string
+		lineageTag: c45e8a05-4b1c-4d05-9677-243f3768e819
+		summarizeBy: none
+		sourceColumn: hs_external_account_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_external_createdate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 45644ff3-75c5-4ae5-963f-9c73c76bdfc5
+		summarizeBy: none
+		sourceColumn: hs_external_createdate
+
+		variation Variation
+			isDefault
+			relationship: d3c6dc21-acec-44fa-9648-3e0c2b5ca046
+			defaultHierarchy: LocalDateTable_271857db-f30c-4b2e-9f93-10b0081fe717.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_external_invoice_id
+		dataType: string
+		lineageTag: f259bf1e-fb12-43f1-a1c7-e209dbfc71c9
+		summarizeBy: none
+		sourceColumn: hs_external_invoice_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_external_recipient
+		dataType: string
+		lineageTag: 46de462d-8f81-46b4-94e6-0c907146b286
+		summarizeBy: none
+		sourceColumn: hs_external_recipient
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_fees_total
+		dataType: double
+		lineageTag: 85b19599-23ca-4b56-a47a-55e06fad7f1d
+		summarizeBy: sum
+		sourceColumn: hs_fees_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_invoice_age_category
+		dataType: string
+		lineageTag: f1c2b04a-ddb9-4abf-a9db-7b95c625719d
+		summarizeBy: none
+		sourceColumn: hs_invoice_age_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 87ca969f-cbde-4d4f-b1a1-39e90b391a9f
+		summarizeBy: none
+		sourceColumn: hs_invoice_date
+
+		variation Variation
+			isDefault
+			relationship: fc148f04-fd39-4d6e-8831-4aafacc66d34
+			defaultHierarchy: LocalDateTable_95c5a114-2135-4634-a8af-8e4a337bc2cb.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_latest_company_name
+		dataType: string
+		lineageTag: deb9995d-a755-472c-96dd-252e7c995954
+		summarizeBy: none
+		sourceColumn: hs_invoice_latest_company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_latest_contact_email
+		dataType: string
+		lineageTag: e2513e8f-b8e8-4164-9d94-1dce39c5cdd3
+		summarizeBy: none
+		sourceColumn: hs_invoice_latest_contact_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_latest_contact_firstname
+		dataType: string
+		lineageTag: ac741e1e-9060-4ff3-98ad-3d1a9915f1b5
+		summarizeBy: none
+		sourceColumn: hs_invoice_latest_contact_firstname
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_latest_contact_lastname
+		dataType: string
+		lineageTag: 28f5a742-338f-4256-bbbc-a2a1ba89ca8a
+		summarizeBy: none
+		sourceColumn: hs_invoice_latest_contact_lastname
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_link
+		dataType: string
+		lineageTag: 363f9a86-014a-4d12-80d9-34a2ac11b837
+		summarizeBy: none
+		sourceColumn: hs_invoice_link
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_payment_collection_method
+		dataType: string
+		lineageTag: aefb8ce6-2239-4acf-84b3-7a203cb71533
+		summarizeBy: none
+		sourceColumn: hs_invoice_payment_collection_method
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_preset_id
+		dataType: double
+		lineageTag: feeb7ad9-86d1-4ce3-b5ed-185b59ea2313
+		summarizeBy: sum
+		sourceColumn: hs_invoice_preset_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_invoice_source
+		dataType: string
+		lineageTag: 867d8a37-461d-45ac-b6d5-de0fc1b7e56c
+		summarizeBy: none
+		sourceColumn: hs_invoice_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_status
+		dataType: string
+		lineageTag: b52a2e08-1de4-4260-a8a9-2f2e0438490d
+		summarizeBy: none
+		sourceColumn: hs_invoice_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_invoice_status_details
+		dataType: string
+		lineageTag: f26f7311-002d-4c2b-825c-69fe0b6837e0
+		summarizeBy: none
+		sourceColumn: hs_invoice_status_details
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_language
+		dataType: string
+		lineageTag: cf92a1d8-a93d-4465-b20f-dca6ed29a828
+		summarizeBy: none
+		sourceColumn: hs_language
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_last_edit_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 023f3b06-217f-4a7a-9de2-eaab31f348fb
+		summarizeBy: none
+		sourceColumn: hs_last_edit_date
+
+		variation Variation
+			isDefault
+			relationship: 5eaedf49-f95d-4180-a286-8cfaf5cce079
+			defaultHierarchy: LocalDateTable_0ea7272b-d08f-4ea3-84ce-5cbee7519b7b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_last_reminder_sent_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 30f16434-6179-427a-bb7c-b049928c38f6
+		summarizeBy: none
+		sourceColumn: hs_last_reminder_sent_date
+
+		variation Variation
+			isDefault
+			relationship: ec4583cf-9f11-4568-b299-2aed0eb96bd5
+			defaultHierarchy: LocalDateTable_b46a4bf8-c8f9-491a-a244-5e3fa2b625a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_last_sent_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a8504cbb-be07-4ff5-ac4a-58a4b73eb91b
+		summarizeBy: none
+		sourceColumn: hs_last_sent_date
+
+		variation Variation
+			isDefault
+			relationship: 62ecfaed-76b4-49c6-bbc6-e65c3c60a113
+			defaultHierarchy: LocalDateTable_ce04159b-4bdd-4780-a9c1-09c7cc6cc34f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_lastmodifieddate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 29088d0c-f924-42e5-922d-9069cffc1ce4
+		summarizeBy: none
+		sourceColumn: hs_lastmodifieddate
+
+		variation Variation
+			isDefault
+			relationship: 57777a6c-c055-49f1-954c-6310e29d51bc
+			defaultHierarchy: LocalDateTable_7578b971-af07-498e-9469-04ffd4328fad.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_locale
+		dataType: string
+		lineageTag: cd4f38b7-f564-42af-8711-a8839f983fce
+		summarizeBy: none
+		sourceColumn: hs_locale
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_merged_object_ids
+		dataType: string
+		lineageTag: 67571db1-57e8-4177-88b1-5f03df9a90c9
+		summarizeBy: none
+		sourceColumn: hs_merged_object_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_number
+		dataType: string
+		lineageTag: 99d84b5c-6fa0-4e37-ac29-fdc0da31409d
+		summarizeBy: none
+		sourceColumn: hs_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_number_of_associated_subscriptions
+		dataType: double
+		lineageTag: 836ac99a-4c1d-43ca-aa2a-5dbd241372f3
+		summarizeBy: sum
+		sourceColumn: hs_number_of_associated_subscriptions
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_object_id
+		dataType: int64
+		formatString: 0
+		lineageTag: e31b6cb5-f733-40ac-b787-e2ebeb40b8d1
+		summarizeBy: sum
+		sourceColumn: hs_object_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source
+		dataType: string
+		lineageTag: 837c5d0f-2768-4947-b8cc-b242d9c9a7f1
+		summarizeBy: none
+		sourceColumn: hs_object_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_detail_1
+		dataType: string
+		lineageTag: fac4d08e-cba4-4f0a-83ae-17a3d3c54f12
+		summarizeBy: none
+		sourceColumn: hs_object_source_detail_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_detail_2
+		dataType: string
+		lineageTag: 4230cf3a-4eae-44f6-9da0-b418e81c6af5
+		summarizeBy: none
+		sourceColumn: hs_object_source_detail_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_detail_3
+		dataType: string
+		lineageTag: 0e0a03a3-99e8-45a6-b8f9-05bc8528a12a
+		summarizeBy: none
+		sourceColumn: hs_object_source_detail_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b0f31e7-b40f-4f36-a504-091bea2663f2
+		summarizeBy: sum
+		sourceColumn: hs_object_source_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_label
+		dataType: string
+		lineageTag: 28097fcb-9fda-4f2a-ac93-9bf4dcf69049
+		summarizeBy: none
+		sourceColumn: hs_object_source_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_object_source_user_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 53d72612-196b-476b-9dac-930772161a3f
+		summarizeBy: sum
+		sourceColumn: hs_object_source_user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_order_level_discounts_total
+		dataType: double
+		lineageTag: 4abbc2ab-87d5-4cde-aff7-6a275d5bb335
+		summarizeBy: sum
+		sourceColumn: hs_order_level_discounts_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_payment_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 73956a98-09e2-4df1-abf3-24a86a7792b3
+		summarizeBy: none
+		sourceColumn: hs_payment_date
+
+		variation Variation
+			isDefault
+			relationship: a5435c04-4b12-4ff2-b687-13fd638d6e5e
+			defaultHierarchy: LocalDateTable_c026cf21-a55b-4f48-b584-a3e45061ac77.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_pdf_download_link
+		dataType: string
+		lineageTag: ae1a5e59-06e9-4785-98ca-853f97b1d4cb
+		summarizeBy: none
+		sourceColumn: hs_pdf_download_link
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_purchase_order_number
+		dataType: string
+		lineageTag: 0114abb5-ac46-40cd-8096-791c659c6432
+		summarizeBy: none
+		sourceColumn: hs_purchase_order_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_read_only
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c8a23542-1521-4866-895a-7e420be87244
+		summarizeBy: none
+		sourceColumn: hs_read_only
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_received_by_recipient_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0cbc2170-cd57-4051-9d4e-6b468d6b2702
+		summarizeBy: none
+		sourceColumn: hs_received_by_recipient_date
+
+		variation Variation
+			isDefault
+			relationship: 959ac070-7d32-4e70-a654-28f7f31f9e60
+			defaultHierarchy: LocalDateTable_f59fa7c4-5842-4ea9-bf49-2b2fb3faa1a9.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_address
+		dataType: string
+		lineageTag: eb79d8d6-dcb0-418b-acca-d2bf6374741c
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_address2
+		dataType: string
+		lineageTag: 6c889a1b-fe4e-4054-b060-28cb27cf2a05
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_address2
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_city
+		dataType: string
+		lineageTag: 19c4239f-4f1e-448d-abe3-383daab5db3d
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_country
+		dataType: string
+		lineageTag: 169134e1-d0ae-478e-97ae-69204a100ac8
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_country
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_state
+		dataType: string
+		lineageTag: dc03c84a-99fe-43e7-87a3-02792f7236ce
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_company_zip
+		dataType: string
+		lineageTag: e5d4d461-989c-4562-80c5-788e92ab48e2
+		summarizeBy: none
+		sourceColumn: hs_recipient_company_zip
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_address
+		dataType: string
+		lineageTag: e8752cd5-d6b9-42da-b9b5-bdda9f02f152
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_address2
+		dataType: string
+		lineageTag: ce64261e-767a-4522-a064-a28f6ec82d46
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_address2
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_city
+		dataType: string
+		lineageTag: 05b3dd08-ec95-4d41-9231-deedcc684d4c
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_country
+		dataType: string
+		lineageTag: 072048d6-8af0-4e52-bf6a-ddab3355ccd4
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_country
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_name
+		dataType: string
+		lineageTag: c5d3fde7-dbad-42b5-befc-2026b56aed17
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_state
+		dataType: string
+		lineageTag: c907035d-9043-46da-b5bd-ae703d24c616
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_recipient_shipping_zip
+		dataType: string
+		lineageTag: 45b1a851-b0c9-4355-babc-a40eb94c2389
+		summarizeBy: none
+		sourceColumn: hs_recipient_shipping_zip
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_shared_team_ids
+		dataType: string
+		lineageTag: 54ba4b5f-a59e-4566-b8e9-03a61c282e2f
+		summarizeBy: none
+		sourceColumn: hs_shared_team_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_shared_user_ids
+		dataType: string
+		lineageTag: 6954a6dd-567e-4270-b31f-356207e14dca
+		summarizeBy: none
+		sourceColumn: hs_shared_user_ids
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_slug
+		dataType: string
+		lineageTag: 311d8c03-701a-4c29-bd21-4216da013c1c
+		summarizeBy: none
+		sourceColumn: hs_slug
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_status
+		dataType: string
+		lineageTag: 3435705f-6756-4310-877d-cb6d9031f762
+		summarizeBy: none
+		sourceColumn: hs_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_store_payment_method_at_checkout
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5a98b25a-694b-49ff-a5cd-825b1f4f751a
+		summarizeBy: none
+		sourceColumn: hs_store_payment_method_at_checkout
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_subtotal
+		dataType: double
+		lineageTag: 8d79b601-0fb2-4882-b6c7-22e45b12af8a
+		summarizeBy: sum
+		sourceColumn: hs_subtotal
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_tax_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 4df0a3ac-d911-4803-8feb-16f173a1d324
+		summarizeBy: sum
+		sourceColumn: hs_tax_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_taxes_total
+		dataType: double
+		lineageTag: 8ad8a1aa-ee1e-4997-af30-025b3333195b
+		summarizeBy: sum
+		sourceColumn: hs_taxes_total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hs_test_mode
+		dataType: string
+		lineageTag: e596af7b-0e2c-42b2-94a2-e5968e3b70c1
+		summarizeBy: none
+		sourceColumn: hs_test_mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_timezone
+		dataType: string
+		lineageTag: 2185583f-477b-4b15-901e-b0074590cf38
+		summarizeBy: none
+		sourceColumn: hs_timezone
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_title
+		dataType: string
+		lineageTag: d0aee5d9-f27b-48ff-a3a0-1e7f95f69711
+		summarizeBy: none
+		sourceColumn: hs_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_unique_creation_key
+		dataType: string
+		lineageTag: 19db4636-a8e2-49ba-9469-b41bd24b036d
+		summarizeBy: none
+		sourceColumn: hs_unique_creation_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_unique_id
+		dataType: string
+		lineageTag: 2b8c3706-582c-4347-9a6e-66ef1fc66070
+		summarizeBy: none
+		sourceColumn: hs_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_upcoming_reminder_dates
+		dataType: string
+		lineageTag: 31feedb7-a88f-4dcc-8e6d-c66810dc25cd
+		summarizeBy: none
+		sourceColumn: hs_upcoming_reminder_dates
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_updated_by_user_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b980b52-3814-42ad-a832-c3478c5e4030
+		summarizeBy: sum
+		sourceColumn: hs_updated_by_user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_user_ids_of_all_notification_followers
+		dataType: string
+		lineageTag: 85989467-b405-439d-a0c5-1baf7d07f8d6
+		summarizeBy: none
+		sourceColumn: hs_user_ids_of_all_notification_followers
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_user_ids_of_all_notification_unfollowers
+		dataType: string
+		lineageTag: 277a2523-6974-4039-a5cc-70d60cd39495
+		summarizeBy: none
+		sourceColumn: hs_user_ids_of_all_notification_unfollowers
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_user_ids_of_all_owners
+		dataType: string
+		lineageTag: 9ce0d852-f46b-4d82-8e06-85bc9dfd48e5
+		summarizeBy: none
+		sourceColumn: hs_user_ids_of_all_owners
+
+		annotation SummarizationSetBy = Automatic
+
+	column hs_was_imported
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 7e4cc244-56a3-41ef-874d-4ebdd79f770d
+		summarizeBy: none
+		sourceColumn: hs_was_imported
+
+		annotation SummarizationSetBy = Automatic
+
+	column hubspot_owner_assigneddate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e17356b3-8cf0-4252-9183-e56fa004c994
+		summarizeBy: none
+		sourceColumn: hubspot_owner_assigneddate
+
+		variation Variation
+			isDefault
+			relationship: b1e1f78e-7fdd-48c8-a119-6954c8e53848
+			defaultHierarchy: LocalDateTable_5709842d-a61f-4709-b083-98bdd271ba54.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column hubspot_owner_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 78c2c057-e037-4a7a-ab23-81f3bb642d3a
+		summarizeBy: sum
+		sourceColumn: hubspot_owner_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamId
+		dataType: int64
+		formatString: 0
+		lineageTag: a8b9a9f6-f1f3-4cc3-bbf3-a8f91db6a373
+		summarizeBy: count
+		sourceColumn: TeamId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHubSpotInvoices-d93157e6-514c-49b3-b2fa-c28c58b4bc5c = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = #"FactHubSpotInvoicesViewNew_DataSource"
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,127 @@
+table FactGoals
+	lineageTag: 46d9db23-075d-4323-8b31-8a76a627be77
+
+	measure 'Current Year Goal Amount Switch (Owner)' =
+			
+			VAR MainDealInScope = ISINSCOPE(FactHubSpotDeal[CompanyName])
+			VAR CurrentFiscalYear = LOOKUPVALUE(DimDate[FiscalYear], DimDate[Date], TODAY())
+			RETURN
+			SWITCH(TRUE(),
+			    MainDealInScope = TRUE(),
+			    BLANK(),
+			    CALCULATE(
+			        SUM(FactGoals[GoalAmount]),
+			        DimDate[FiscalYear] = CurrentFiscalYear,
+			        USERELATIONSHIP(FactGoals[OwnerFullName], FactHubSpotDeal[OwnerFullName]))
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 3703cc8a-eeff-49f4-a73b-411b21a7b14a
+
+	measure 'Current Year Go Get Amount (Owner)' =
+			
+			VAR OwnerFullNameInScope = ISINSCOPE(FactHubSpotDeal[OwnerFullName])
+			VAR CompanyNameInScope = ISINSCOPE(FactHubSpotDeal[CompanyName])
+			VAR CurrentFiscalYear = LOOKUPVALUE(DimDate[FiscalYear], DimDate[Date], TODAY())
+			RETURN
+			SWITCH(TRUE(),
+			    CompanyNameInScope = TRUE(),
+			    BLANK(),
+			    [Current Year Goal Amount Switch (Owner)] - [Total Deal Amount Achieved (Owner)]
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 0b49f685-ec8a-474d-8ece-0e7716aef5f8
+
+	measure 'Current Year Goal Amount Switch (Source)' =
+			
+			VAR OwnerFullNameInScope = ISINSCOPE(FactHubSpotDeal[DealSource_Cleaned])
+			VAR MainDealInScope = ISINSCOPE(FactHubSpotDeal[CompanyName])
+			VAR CurrentFiscalYear = LOOKUPVALUE(DimDate[FiscalYear], DimDate[Date], TODAY())
+			RETURN
+			SWITCH(TRUE(),
+			    MainDealInScope = TRUE(),
+			    BLANK(),
+			    CALCULATE(
+			        SUM(FactGoals[GoalAmount]),
+			        DimDate[FiscalYear] = CurrentFiscalYear,
+			        USERELATIONSHIP(FactGoals[OwnerFullName], FactHubSpotDeal[DealSource_Cleaned]))
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 22ca405f-f987-4e7f-ba9a-d359d86e77fe
+
+	measure 'Current Year Go Get Amount (Source)' =
+			
+			VAR OwnerFullNameInScope = ISINSCOPE(FactHubSpotDeal[DealSource_Cleaned])
+			VAR MainDealInScope = ISINSCOPE(FactHubSpotDeal[CompanyName])
+			VAR CurrentFiscalYear = LOOKUPVALUE(DimDate[FiscalYear], DimDate[Date], TODAY())
+			VAR CurrentYearGoalAmount = [Current Year Goal Amount Switch (Source)]
+			RETURN
+			SWITCH(TRUE(),
+			    MainDealInScope = TRUE() || ISBLANK(CurrentYearGoalAmount),
+			    BLANK(),
+			    CurrentYearGoalAmount - [Total Deal Amount Achieved (Deal Source)]
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 838d284b-9118-4712-97e3-f5408e1e44a9
+
+	column OwnerFullName
+		dataType: string
+		lineageTag: fa706fab-a9d8-4f50-be9f-57d07a8b8073
+		summarizeBy: none
+		sourceColumn: OwnerFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column GoalAmount
+		dataType: double
+		lineageTag: b8320bf2-6f37-4716-a765-12cf50344c1c
+		summarizeBy: sum
+		sourceColumn: GoalAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column GoalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 2a9776a0-0a81-4816-8f18-d0b6e08f8d51
+		summarizeBy: none
+		sourceColumn: GoalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPosition
+		dataType: string
+		lineageTag: 2270c5be-7b8b-4cd7-b896-e7be2669d2c8
+		summarizeBy: none
+		sourceColumn: UserPosition
+
+		annotation SummarizationSetBy = Automatic
+
+	column UtilizationTarget
+		dataType: double
+		lineageTag: 48aacc54-f5f8-40d2-82c4-9fd14c31b78f
+		summarizeBy: sum
+		sourceColumn: UtilizationTarget
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FactGoals = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("dZDBCoJAEIZfZdhrHszYwGNJENFerJt4GNwBpXE3VkX06dvtltqchvk++H+mKITCvq9phIse0elORGKfxGH8lsSJFGXkpcboCVSVI/0R0L3g7OxoAo9X/KSxhScOM/G2cCNH7QQZTzpEpHIp5NYga1D4ZgotjytDNVWNxF6ZZzR945lc52BnDWQDMaPbNB6767eiXNzvw4sgfMs6NNaTQ/qjlB8=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [OwnerFullName = _t, GoalAmount = _t, GoalYear = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"GoalAmount", type number}, {"GoalYear", Int64.Type}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type", {"OwnerFullName"}, FactSharePointResourceData, {"FullName"}, "FactSharePointResourceData", JoinKind.LeftOuter),
+				    #"Expanded FactSharePointResourceData" = Table.ExpandTableColumn(#"Merged Queries", "FactSharePointResourceData", {"UserPosition"}, {"UserPosition"}),
+				    #"Added UtilizationTarget" = Table.AddColumn(#"Expanded FactSharePointResourceData", "UtilizationTarget", each if [UserPosition] = "Managing Partner" then 0 else if [UserPosition] = "Partner" then .5 else if [UserPosition] = "Managing Director" then 0.75 else if List.Contains({"Director", "Consultant"}, [UserPosition]) then 0.85 else if [UserPosition] = "Contractor" then 1 else null),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added UtilizationTarget",{{"UtilizationTarget", Percentage.Type}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

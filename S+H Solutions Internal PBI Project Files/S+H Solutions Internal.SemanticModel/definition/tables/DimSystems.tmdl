@@ -1,0 +1,56 @@
+table DimSystems
+	lineageTag: 52632b59-4ac2-42bc-b63b-3e6e6238d632
+
+	column 'QB ID'
+		dataType: string
+		isHidden
+		lineageTag: e742f1cb-fe69-4f11-9b56-ed2b14e17a8d
+		summarizeBy: none
+		sourceColumn: QB ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Full Name'
+		dataType: string
+		isHidden
+		lineageTag: dcaec92a-7dc4-4a28-8a00-329609d58532
+		summarizeBy: none
+		sourceColumn: Full Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Systems
+		dataType: string
+		lineageTag: 6fa08001-62b4-4231-a46f-d33dadaa5e39
+		summarizeBy: none
+		sourceColumn: Systems
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Remaining Hours'
+		dataType: string
+		lineageTag: 3d9d082f-f8bb-4eff-b4bb-022aa73047cf
+		summarizeBy: none
+		sourceColumn: Remaining Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimSystems-5625b5c3-884c-4049-a188-7e43db5c96a4 = m
+		mode: import
+		queryGroup: Resources
+		source =
+				let
+				    Source = #"Resource List",
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"ID", "Modified", "Created", "Professional Designations", "Email", "Job Title", "Employee Type", "Employee Preference", "Start Date", "Available Date", "Active", "Availability", "Utilization Percentage", "Booked Weekly Hours", "Desired Maximum Hours", "Director", "Location", "Years of Experience", "Level", "Profile Link", "Bullhorn Link", "Bill Rate", "Pay Rate", "Profile Skills", "Industry Experience", "Service Line"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

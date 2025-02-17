@@ -1,0 +1,43 @@
+table FactHubSpotDealCompanyBridge
+	lineageTag: 7658e451-30b2-4958-91ad-8ed1c4551187
+
+	column CompanyId
+		dataType: int64
+		formatString: 0
+		lineageTag: 3bf205ec-1487-44d2-b848-71469ead3c2c
+		summarizeBy: count
+		sourceColumn: CompanyId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DealId
+		dataType: int64
+		formatString: 0
+		lineageTag: 2c84127b-8187-44eb-9b08-804e9bf19ce7
+		summarizeBy: count
+		sourceColumn: DealId
+
+		annotation SummarizationSetBy = Automatic
+
+	column LabelDealCompany
+		dataType: string
+		lineageTag: f2b3f5d3-b873-4f3d-91e9-dba6bbc74ec5
+		summarizeBy: none
+		sourceColumn: LabelDealCompany
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHubSpotDealCompanyBridge = m
+		mode: import
+		queryGroup: 'HubSpot Tables'
+		source =
+				let
+				    Source = Sql.Database("hscdbserver757.database.windows.net", "Shhubspot6384"),
+				    dbo_DealCompanyAssociations = Source{[Schema="dbo",Item="DealCompanyAssociations"]}[Data]
+				in
+				    dbo_DealCompanyAssociations
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

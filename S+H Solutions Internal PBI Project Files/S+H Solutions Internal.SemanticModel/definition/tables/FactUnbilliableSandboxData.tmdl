@@ -1,0 +1,97 @@
+table FactUnbilliableSandboxData
+	lineageTag: b60025c9-2afd-4090-aa7b-32910954be46
+
+	column Priority
+		dataType: int64
+		formatString: 0
+		lineageTag: a4c89163-1164-46c7-b20d-ecc8b2f5387b
+		summarizeBy: sum
+		sourceColumn: Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Name'
+		dataType: string
+		lineageTag: 21f6550a-54f5-492c-a6ef-4ced2f0f1c4c
+		summarizeBy: none
+		sourceColumn: Task Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 3726e7a3-a6af-4acc-b544-e3d87b843917
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 13019a91-cf30-4aa5-8375-b057a64ad7a9
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Currently Checked Out To'
+		dataType: string
+		lineageTag: df100a4f-94d7-4954-994e-2dd480da1afd
+		summarizeBy: none
+		sourceColumn: Currently Checked Out To
+
+		annotation SummarizationSetBy = Automatic
+
+	column Leader
+		dataType: string
+		lineageTag: 3572ba67-dd56-4a51-b892-619dafbd1159
+		summarizeBy: none
+		sourceColumn: Leader
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 4e7a7b3a-a1a8-4044-95f4-2fe34a40c427
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Link to Deliverable/Collateral'
+		dataType: string
+		lineageTag: 48ac9c26-4b21-4548-a10e-561beed6acd3
+		summarizeBy: none
+		sourceColumn: Link to Deliverable/Collateral
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Deliverable Hyperlink'
+		dataType: string
+		lineageTag: 1f2729eb-38f2-48a9-81c8-80efd218a695
+		summarizeBy: none
+		sourceColumn: Deliverable Hyperlink
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactUnbilliableSandboxData = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://vipsearchgroup.sharepoint.com/Shared Documents/Administrative/Training/")),
+				    #"Unbillable Time Sandbox xlsx_https://vipsearchgroup sharepoint com/Shared Documents/Administrative/Training/" = #"Filtered Rows"{[Name="Unbillable Time Sandbox.xlsx",#"Folder Path"="https://vipsearchgroup.sharepoint.com/Shared Documents/Administrative/Training/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Unbillable Time Sandbox xlsx_https://vipsearchgroup sharepoint com/Shared Documents/Administrative/Training/"),
+				    Sandbox_FlatData_Sheet = #"Imported Excel Workbook"{[Item="Sandbox_FlatData",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Sandbox_FlatData_Sheet, [PromoteAllScalars=true]),
+				    #"Filtered Rows1" = Table.SelectRows(#"Promoted Headers", each ([Priority] <> null)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows1",{{"Description", type text}, {"Task Name", type text}, {"Category", type text}, {"Currently Checked Out To", type text}, {"Leader", type text}, {"Status", type text}, {"Link to Deliverable/Collateral", type text}, {"Deliverable Hyperlink", type text}, {"Priority", Int64.Type}}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Changed Type",{"Priority", "Task Name", "Category", "Description", "Currently Checked Out To", "Leader", "Status", "Link to Deliverable/Collateral", "Deliverable Hyperlink"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

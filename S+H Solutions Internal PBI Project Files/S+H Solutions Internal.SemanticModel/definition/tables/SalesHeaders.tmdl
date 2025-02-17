@@ -1,0 +1,40 @@
+table SalesHeaders
+	lineageTag: 6d11ed3f-37af-43af-bc49-24a4062773e4
+
+	column Level
+		dataType: string
+		lineageTag: ac0cf314-cdb8-4912-9932-b6c7c01e0f62
+		summarizeBy: none
+		sourceColumn: Level
+		sortByColumn: DisplayID
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DisplayID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 88287207-8ced-40cf-9fbd-b0e68d294974
+		summarizeBy: none
+		sourceColumn: DisplayID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SalesHeaders-d9f3608b-c8f3-4320-a483-366c5550bc3c = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(Web.Contents("https://vipsearchgroup.sharepoint.com/sites/VIPPowerBI/Shared%20Documents/General/VIP%20Internal%20-%20(PB-2208-003)/Budgeted%20Sales%20Requirements.xlsx"), null, true),
+				    SalesHeaders_Table = Source{[Item="SalesHeaders",Kind="Table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(SalesHeaders_Table,{{"Level", type text}, {"DisplayID", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

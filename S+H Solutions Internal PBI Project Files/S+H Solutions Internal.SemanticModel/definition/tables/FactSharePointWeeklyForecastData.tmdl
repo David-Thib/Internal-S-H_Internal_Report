@@ -1,0 +1,98 @@
+table FactSharePointWeeklyForecastData
+	lineageTag: af2bd2ce-c649-4446-b7ad-1c6120b38efc
+
+	measure 'Total Revenue Forecast YTD Amount' =
+			
+			VAR LatestFiscalYear = MAX(DimDate[FiscalYear])
+			CALCULATE(
+			    SUM(FactSharePointWeeklyForecastData[WeeklyRevenueFcst])
+		lineageTag: f163c445-2fb0-49bd-a1e1-0ccb81466d2e
+
+	column FiscalQuarter
+		dataType: string
+		lineageTag: ca730a0b-04f0-4576-afe6-545edd689a53
+		summarizeBy: none
+		sourceColumn: FiscalQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: cd39488f-62ad-4cde-b574-efab806e6400
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthEndingDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 1be816a7-5e4a-4ee1-82bc-246341edfe8e
+		summarizeBy: none
+		sourceColumn: MonthEndingDate
+
+		variation Variation
+			isDefault
+			relationship: 7fc98ef8-e7de-49d4-b182-9d325106bf27
+			defaultHierarchy: LocalDateTable_8af0783f-eaa6-4809-aff5-62b1923f7a4e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MonthlyRevenueFcst
+		dataType: double
+		lineageTag: f8493e9c-d658-4fa7-b8b0-9dacf5db14d0
+		summarizeBy: sum
+		sourceColumn: MonthlyRevenueFcst
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WeeksInMonth
+		dataType: double
+		lineageTag: a78b9e82-52ea-4cb9-935c-2267de9d7b55
+		summarizeBy: sum
+		sourceColumn: WeeksInMonth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WeeklyRevenueFcst
+		dataType: double
+		lineageTag: f145e140-6f4c-4476-9b3d-852ef68e271d
+		summarizeBy: sum
+		sourceColumn: WeeklyRevenueFcst
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FactSharePointWeeklyForecastData = m
+		mode: import
+		queryGroup: 'SharePoint Tables'
+		source =
+				let
+				    Source = SharePoint.Files("https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/", [ApiVersion = 15]),
+				    #"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/" = Source{[Name="Resource Utilization Tracker Working Master - 2025.xlsb",#"Folder Path"="https://vipsearchgroup.sharepoint.com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Resource Utilization Tracker Working Master - 2025 xlsb_https://vipsearchgroup sharepoint com/sites/SolutionsAdmin/Shared Documents/Utilization Tracker/"),
+				    #"Consulting Revenue Fcst" = #"Imported Excel Workbook"{[Name="Consulting Revenue Fcst"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(#"Consulting Revenue Fcst",{"Column1"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each ([Column2] <> null and [Column2] <> "Consulting")),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Filtered Rows",{"Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9", "Column10", "Column11", "Column12", "Column13", "Column16"}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Removed Columns1", each ([Column2] <> "Month")),
+				    #"Transposed Table" = Table.Transpose(#"Filtered Rows1"),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Transposed Table", [PromoteAllScalars=true]),
+				    #"Filtered Rows2" = Table.SelectRows(#"Promoted Headers", each ([Fiscal Quarter] <> null)),
+				    #"Renamed Columns" = Table.RenameColumns(#"Filtered Rows2",{{"Weekly Revenue", "WeeklyRevenueFcst"}, {"Weeks in Month", "WeeksInMonth"}, {"Monthly Revenue", "MonthlyRevenueFcst"}, {"Date", "MonthEndingDate"}, {"Fiscal Year", "FiscalYear"}, {"Fiscal Quarter", "FiscalQuarter"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"FiscalQuarter", type text}, {"WeeklyRevenueFcst", type number}, {"MonthlyRevenueFcst", type number}, {"WeeksInMonth", type number}, {"MonthEndingDate", type date}, {"FiscalYear", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
